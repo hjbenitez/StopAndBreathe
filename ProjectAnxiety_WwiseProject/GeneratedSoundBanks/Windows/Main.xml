@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<SoundBanksInfo Platform="Windows" BasePlatform="Windows" SchemaVersion="16" SoundBankVersion="145">
+	<SoundBanks>
+		<SoundBank Id="3161908922" Type="User" GUID="{A51DBFB7-453C-4DFB-BAC5-FF014162FD85}" Language="SFX" Hash="{E58D40DE-B7C2-3E71-B352-2A8947263038}">
+			<ObjectPath>\SoundBanks\Default Work Unit\Main</ObjectPath>
+			<ShortName>Main</ShortName>
+			<Path>Main.bnk</Path>
+			<Media>
+				<File Id="741490984" Language="SFX" Streaming="false" Location="Memory">
+					<ShortName>sfx_breathe_in.wav</ShortName>
+					<CachePath>SFX/sfx_breathe_in_10C4C929.wem</CachePath>
+				</File>
+				<File Id="863866764" Language="SFX" Streaming="false" Location="Memory">
+					<ShortName>sfx_breathe_out.wav</ShortName>
+					<CachePath>SFX/sfx_breathe_out_10C4C929.wem</CachePath>
+				</File>
+				<File Id="883104554" Language="SFX" Streaming="false" Location="Memory">
+					<ShortName>Renders\sfx_breathingmessup.wav</ShortName>
+					<CachePath>SFX/Renders/sfx_breathingmessup_10C4C929.wem</CachePath>
+				</File>
+			</Media>
+			<Events>
+				<Event Id="1773327124" Name="Breathe_Exhale" ObjectPath="\Events\Event\Breathe_Exhale" GUID="{EBD0A850-F894-4A94-AE04-D6E434504F91}" DurationType="OneShot" DurationMin="6" DurationMax="6">
+					<MediaRefs>
+						<MediaRef Id="863866764"/>
+					</MediaRefs>
+				</Event>
+				<Event Id="3215918404" Name="Breathe_Hold" ObjectPath="\Events\Event\Breathe_Hold" GUID="{6633E8A1-9482-4E4A-B508-2DC32043F677}" MaxAttenuation="0" DurationType="OneShot" DurationMin="0" DurationMax="0"/>
+				<Event Id="2556175990" Name="Breathe_Inhale" ObjectPath="\Events\Event\Breathe_Inhale" GUID="{759317E3-B708-4C89-9425-033638B54B10}" DurationType="OneShot" DurationMin="2" DurationMax="2">
+					<MediaRefs>
+						<MediaRef Id="741490984"/>
+					</MediaRefs>
+				</Event>
+				<Event Id="3711004964" Name="Breathe_MessUp" ObjectPath="\Events\Event\Breathe_MessUp" GUID="{55A73257-FE33-4AA0-A6B3-40D099B4BE67}" DurationType="OneShot" DurationMin="1.1683674" DurationMax="1.1683674">
+					<MediaRefs>
+						<MediaRef Id="883104554"/>
+					</MediaRefs>
+				</Event>
+			</Events>
+		</SoundBank>
+	</SoundBanks>
+	<FileHash>{38F5C582-E513-5195-A0C3-9FDA79CFF5B9}</FileHash>
+</SoundBanksInfo>

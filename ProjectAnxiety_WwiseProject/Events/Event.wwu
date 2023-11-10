@@ -1,6 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
 <WwiseDocument Type="WorkUnit" ID="{FB7F1982-DFE3-496E-B545-4BF407224F72}" SchemaVersion="110">
 	<Events>
-		<WorkUnit Name="Event" ID="{FB7F1982-DFE3-496E-B545-4BF407224F72}" PersistMode="Standalone"/>
+		<WorkUnit Name="Event" ID="{FB7F1982-DFE3-496E-B545-4BF407224F72}" PersistMode="Standalone">
+			<ChildrenList>
+				<Event Name="Breathe_MessUp" ID="{55A73257-FE33-4AA0-A6B3-40D099B4BE67}">
+					<ChildrenList>
+						<Action Name="" ID="{9F91C7E4-C087-479B-A3FA-19368B96E4F5}" ShortID="937879101">
+							<ReferenceList>
+								<Reference Name="Target">
+									<ObjectRef Name="SFX_Breathing_MessUP" ID="{003FE03F-4CE8-4501-B8C5-A4CD30082037}" WorkUnitID="{5A692BCF-463D-4BAE-AD77-DEA96641EC18}"/>
+								</Reference>
+							</ReferenceList>
+						</Action>
+					</ChildrenList>
+				</Event>
+				<Event Name="Breathe_Inhale" ID="{759317E3-B708-4C89-9425-033638B54B10}">
+					<ChildrenList>
+						<Action Name="" ID="{A67AD552-463B-4668-9811-3F932EAB1883}" ShortID="671135132">
+							<ReferenceList>
+								<Reference Name="Target">
+									<ObjectRef Name="SFX_Breathing_Inhale" ID="{45AFD488-970C-474F-BE31-FD7FDD24F6DC}" WorkUnitID="{5A692BCF-463D-4BAE-AD77-DEA96641EC18}"/>
+								</Reference>
+							</ReferenceList>
+						</Action>
+					</ChildrenList>
+				</Event>
+				<Event Name="Breathe_Exhale" ID="{EBD0A850-F894-4A94-AE04-D6E434504F91}">
+					<ChildrenList>
+						<Action Name="" ID="{7751D046-3A12-47B9-9B72-05A0981E883B}" ShortID="686746102">
+							<ReferenceList>
+								<Reference Name="Target">
+									<ObjectRef Name="SFX_Breathing_Exhale" ID="{BA6F00E2-3EE0-4356-AF1E-280EB11BE306}" WorkUnitID="{5A692BCF-463D-4BAE-AD77-DEA96641EC18}"/>
+								</Reference>
+							</ReferenceList>
+						</Action>
+					</ChildrenList>
+				</Event>
+				<Event Name="Breathe_Hold" ID="{6633E8A1-9482-4E4A-B508-2DC32043F677}"/>
+			</ChildrenList>
+		</WorkUnit>
 	</Events>
 </WwiseDocument>
