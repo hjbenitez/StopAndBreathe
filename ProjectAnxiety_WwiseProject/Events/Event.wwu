@@ -36,7 +36,28 @@
 						</Action>
 					</ChildrenList>
 				</Event>
-				<Event Name="Breathe_Hold" ID="{6633E8A1-9482-4E4A-B508-2DC32043F677}"/>
+				<Event Name="Breathe_Hold" ID="{6633E8A1-9482-4E4A-B508-2DC32043F677}">
+					<ChildrenList>
+						<Action Name="" ID="{8DF72771-EB31-4C4A-952F-3E9A989DF9A6}" ShortID="1018713511">
+							<ReferenceList>
+								<Reference Name="Target">
+									<ObjectRef Name="SFX_breathe_Hold" ID="{6CD4FD09-F64E-4FA1-B87E-D2CB33EF8929}" WorkUnitID="{5A692BCF-463D-4BAE-AD77-DEA96641EC18}"/>
+								</Reference>
+							</ReferenceList>
+						</Action>
+					</ChildrenList>
+				</Event>
+				<Event Name="Music" ID="{F84178E2-0179-4EAE-A38A-A86992777961}">
+					<ChildrenList>
+						<Action Name="" ID="{4D36103E-2BDD-4B56-BA49-FB2E9A768321}" ShortID="360309857">
+							<ReferenceList>
+								<Reference Name="Target">
+									<ObjectRef Name="MUSIOC" ID="{EF2D0386-5583-46A8-850A-89FDCD6A706A}" WorkUnitID="{5A692BCF-463D-4BAE-AD77-DEA96641EC18}"/>
+								</Reference>
+							</ReferenceList>
+						</Action>
+					</ChildrenList>
+				</Event>
 			</ChildrenList>
 		</WorkUnit>
 	</Events>

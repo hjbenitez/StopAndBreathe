@@ -9,6 +9,7 @@
 						<ObjectRef Name="Breathe_MessUp" ID="{55A73257-FE33-4AA0-A6B3-40D099B4BE67}" WorkUnitID="{FB7F1982-DFE3-496E-B545-4BF407224F72}" Origin="Manual" Filter="7"/>
 						<ObjectRef Name="Breathe_Inhale" ID="{759317E3-B708-4C89-9425-033638B54B10}" WorkUnitID="{FB7F1982-DFE3-496E-B545-4BF407224F72}" Origin="Manual" Filter="7"/>
 						<ObjectRef Name="Breathe_Hold" ID="{6633E8A1-9482-4E4A-B508-2DC32043F677}" WorkUnitID="{FB7F1982-DFE3-496E-B545-4BF407224F72}" Origin="Manual" Filter="7"/>
+						<ObjectRef Name="Music" ID="{F84178E2-0179-4EAE-A38A-A86992777961}" WorkUnitID="{FB7F1982-DFE3-496E-B545-4BF407224F72}" Origin="Manual" Filter="7"/>
 					</ObjectInclusionList>
 					<ObjectExclusionList/>
 					<GameSyncExclusionList/>

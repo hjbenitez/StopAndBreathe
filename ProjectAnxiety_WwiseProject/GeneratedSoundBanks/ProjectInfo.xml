@@ -3,11 +3,10 @@
 	<Project Name="ProjectAnxiety_WwiseProject" GUID="{62712B22-F197-4068-B50E-27DBF94F42C4}" Generator="2022.1.8.8316"/>
 	<CacheRoot>../.cache</CacheRoot>
 	<Platforms>
-		<Platform Name="Mac" GUID="{9C01DBF9-798A-4B03-89B9-236BCDFB7B07}" BasePlatform="Mac" BasePlatformGUID="{9C6217D5-DD11-4795-87C1-6CE02853C540}" Path="Mac"/>
 		<Platform Name="Windows" GUID="{63D1CBDE-1236-410C-94D5-55E52D01AB68}" BasePlatform="Windows" BasePlatformGUID="{6E0CB257-C6C8-4C5C-8366-2740DFC441EB}" Path="Windows"/>
 	</Platforms>
 	<Languages>
 		<Language Name="English(US)" Id="684519430" GUID="{445C514A-E031-4234-9692-6B5F34483A04}" Default="true" UseAsStandIn="true"/>
 	</Languages>
-	<FileHash>{35CEE6A5-3C5F-D516-7307-55C36F00374E}</FileHash>
+	<FileHash>{2C31415C-58A4-4826-C450-485014A60F13}</FileHash>
 </ProjectInfo>

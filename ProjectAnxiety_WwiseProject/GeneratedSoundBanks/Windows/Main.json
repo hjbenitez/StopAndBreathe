@@ -10,11 +10,19 @@
     "Type": "User",
     "GUID": "{A51DBFB7-453C-4DFB-BAC5-FF014162FD85}",
     "Language": "SFX",
-    "Hash": "{E58D40DE-B7C2-3E71-B352-2A8947263038}",
+    "Hash": "{7FEFA275-CDD5-6E73-0730-D21CE608D1E7}",
     "ObjectPath": "\\SoundBanks\\Default Work Unit\\Main",
     "ShortName": "Main",
     "Path": "Main.bnk",
     "Media": [
+     {
+      "Id": "539512346",
+      "Language": "SFX",
+      "Streaming": "false",
+      "Location": "Memory",
+      "ShortName": "sfx_breathe_ticking.wav",
+      "CachePath": "SFX/sfx_breathe_ticking_10C4C929.wem"
+     },
      {
       "Id": "741490984",
       "Language": "SFX",
@@ -38,6 +46,14 @@
       "Location": "Memory",
       "ShortName": "Renders\\sfx_breathingmessup.wav",
       "CachePath": "SFX/Renders/sfx_breathingmessup_10C4C929.wem"
+     },
+     {
+      "Id": "993368031",
+      "Language": "SFX",
+      "Streaming": "false",
+      "Location": "Memory",
+      "ShortName": "Mus_MainMenu.wav",
+      "CachePath": "SFX/Mus_MainMenu_10C4C929.wem"
      }
     ],
     "Events": [
@@ -60,10 +76,14 @@
       "Name": "Breathe_Hold",
       "ObjectPath": "\\Events\\Event\\Breathe_Hold",
       "GUID": "{6633E8A1-9482-4E4A-B508-2DC32043F677}",
-      "MaxAttenuation": "0",
       "DurationType": "OneShot",
-      "DurationMin": "0",
-      "DurationMax": "0"
+      "DurationMin": "22.4878",
+      "DurationMax": "22.4878",
+      "MediaRefs": [
+       {
+        "Id": "539512346"
+       }
+      ]
      },
      {
       "Id": "2556175990",
@@ -92,10 +112,24 @@
         "Id": "883104554"
        }
       ]
+     },
+     {
+      "Id": "3991942870",
+      "Name": "Music",
+      "ObjectPath": "\\Events\\Event\\Music",
+      "GUID": "{F84178E2-0179-4EAE-A38A-A86992777961}",
+      "DurationType": "OneShot",
+      "DurationMin": "71",
+      "DurationMax": "71",
+      "MediaRefs": [
+       {
+        "Id": "993368031"
+       }
+      ]
      }
     ]
    }
   ],
-  "FileHash": "{05D79702-ECCB-702B-8AA1-DE099B5956EB}"
+  "FileHash": "{ACFC63D1-C696-F9FC-37F3-69666F965BEE}"
  }
 }

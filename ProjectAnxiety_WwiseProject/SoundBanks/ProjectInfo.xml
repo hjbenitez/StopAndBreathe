@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ProjectInfo>
+	<Project Name="ProjectAnxiety_WwiseProject" GUID="{62712B22-F197-4068-B50E-27DBF94F42C4}" Generator="2022.1.8.8316"/>
+	<CacheRoot>../.cache</CacheRoot>
+	<Platforms>
+		<Platform Name="Windows" GUID="{63D1CBDE-1236-410C-94D5-55E52D01AB68}" BasePlatform="Windows" BasePlatformGUID="{6E0CB257-C6C8-4C5C-8366-2740DFC441EB}" Path="../GeneratedSoundBanks/Windows"/>
+	</Platforms>
+	<Languages>
+		<Language Name="English(US)" Id="684519430" GUID="{445C514A-E031-4234-9692-6B5F34483A04}" Default="true" UseAsStandIn="true"/>
+	</Languages>
+	<FileHash>{24707E0C-E469-DF84-8814-C77C25F322FD}</FileHash>
+</ProjectInfo>
