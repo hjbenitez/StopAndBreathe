@@ -104,7 +104,7 @@ public:
 
 	/// Add a translator to the wwiseErrorHandler
 	/// The additional translators increase the chance of a monitoring messages or errors
-	/// to be succeffully translated.
+	/// to be successfully translated.
 	/// \return AK_Success.
 	///	In optimized/release configuration, this function returns AK_NotCompatible.
 	AKRESULT AddTranslator(

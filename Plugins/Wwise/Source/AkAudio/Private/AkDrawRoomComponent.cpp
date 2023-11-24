@@ -28,7 +28,6 @@ Copyright (c) 2023 Audiokinetic Inc.
 #include "AkSpatialAudioDrawUtils.h"
 #include "DynamicMeshBuilder.h"
 #include "SceneManagement.h"
-#include "AkSettings.h"
 #endif // WITH_EDITOR
 
 UDrawRoomComponent::UDrawRoomComponent(const FObjectInitializer& ObjectInitializer)
@@ -107,7 +106,7 @@ public:
 
 	virtual void GetDynamicMeshElements(const TArray<const FSceneView*>& Views, const FSceneViewFamily& ViewFamily, uint32 VisibilityMap, FMeshElementCollector& Collector) const override
 	{
-		if (GetDefault<UAkSettings>()->VisualizeRoomsAndPortals)
+		if (GetDefault<UAkSettingsPerUser>()->VisualizeRoomsAndPortals)
 		{
 			if (RoomDrawer != nullptr)
 			{

@@ -16,6 +16,8 @@ Copyright (c) 2023 Audiokinetic Inc.
 *******************************************************************************/
 
 #include "Wwise/WwiseExternalSourceStatics.h"
+
+#include "WwiseUnrealObjectHelper.h"
 #include "Wwise/WwiseExternalSourceManager.h"
 
 void UWwiseExternalSourceStatics::SetExternalSourceMediaById(const FString& ExternalSourceName, const int32 MediaId)

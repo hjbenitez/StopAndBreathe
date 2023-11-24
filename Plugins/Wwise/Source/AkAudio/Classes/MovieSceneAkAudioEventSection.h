@@ -219,7 +219,7 @@ public:
 	/** Subscribed to child added and child removed for the event ID. When a child is added or removed, UpdateAudioSourceInfo() is called. */
 	void SubscribeToEventChildAddedRemoved();
 
-	/** Unsubscribes a specfic WAAPI subscription ID. */
+	/** Unsubscribes a specific WAAPI subscription ID. */
 	void UnsubscribeWAAPICallback(uint64& in_iSubID);
 
 	/** Unsubscribes from all existing WAAPI subscriptions for this section. */

@@ -29,18 +29,7 @@ FWwiseProjectDatabaseDataSource::~FWwiseProjectDatabaseDataSource()
 {
 	if (OnDatabaseUpdateCompleteHandle.IsValid())
 	{
-		auto* ProjectDatabaseDelegates = FWwiseProjectDatabaseDelegates::Get();
-
-		if (UNLIKELY(!ProjectDatabaseDelegates))
-		{
-			UE_LOG(LogAudiokineticTools, Warning, TEXT("FWwiseProjectDatabaseDataSource::~FWwiseProjectDatabaseDataSource: ProjectDatabase Delegates not initialized, could not unsubscribe to OnDatabaseUpdateCompleted"))
-		}
-
-		else
-		{
-			ProjectDatabaseDelegates->GetOnDatabaseUpdateCompletedDelegate().Remove(OnDatabaseUpdateCompleteHandle);
-		}
-
+		FWwiseProjectDatabaseDelegates::Get()->GetOnDatabaseUpdateCompletedDelegate().Remove(OnDatabaseUpdateCompleteHandle);
 		OnDatabaseUpdateCompleteHandle.Reset();
 	}
 }
@@ -68,24 +57,14 @@ FText FWwiseProjectDatabaseDataSource::GetProjectName()
 
 bool FWwiseProjectDatabaseDataSource::Init()
 {
-		auto* ProjectDatabaseDelegates = FWwiseProjectDatabaseDelegates::Get();
 
-		if (UNLIKELY(!ProjectDatabaseDelegates))
+	OnDatabaseUpdateCompleteHandle = FWwiseProjectDatabaseDelegates::Get()->GetOnDatabaseUpdateCompletedDelegate().AddLambda([this]
+	{
+		AsyncTask(ENamedThreads::Type::GameThread, [this]
 		{
-			UE_LOG(LogAudiokineticTools, Warning, TEXT("FWwiseProjectDatabaseDataSource::Init ProjectDatabase Delegates not initialized, could not subscribe to OnDatabaseUpdateCompleted"))
-		}
-
-		else
-		{
-			OnDatabaseUpdateCompleteHandle = ProjectDatabaseDelegates->GetOnDatabaseUpdateCompletedDelegate().AddLambda([this]
-			{
-				AsyncTask(ENamedThreads::Type::GameThread, [this]
-				{
-					this->ConstructTree(true);
-				});
-			});
-		}
-
+			this->ConstructTree(true);
+		});
+	});
 
 	return true;
 }

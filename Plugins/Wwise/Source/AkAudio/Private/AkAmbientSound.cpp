@@ -29,6 +29,8 @@ Copyright (c) 2023 Audiokinetic Inc.
 	AAkAmbientSound
 ------------------------------------------------------------------------------------*/
 
+DEFINE_LOG_CATEGORY(LogAkAmbientSound);
+
 AAkAmbientSound::AAkAmbientSound(const class FObjectInitializer& ObjectInitializer) :
 Super(ObjectInitializer)
 {
@@ -106,17 +108,19 @@ void AAkAmbientSound::StartPlaying()
 {
 	if( !IsCurrentlyPlaying() )
 	{
-		if (AkComponent->AkAudioEvent)
-		{
-			AkComponent->AkAudioEvent->PostOnActor(this, nullptr, nullptr, nullptr, (AkCallbackType)0, nullptr, StopWhenOwnerIsDestroyed);
-			return;
-		}
 		FAkAudioDevice* AkAudioDevice = FAkAudioDevice::Get();
 		if (AkAudioDevice)
 		{
 			AkAudioDevice->SetAttenuationScalingFactor(this, AkComponent->AttenuationScalingFactor);
-
-			AkPlayingID pID = AkAudioDevice->PostEventOnActor(AkAudioDevice->GetShortID(AkComponent->AkAudioEvent, AkComponent->EventName), this, 0, NULL, NULL, StopWhenOwnerIsDestroyed, {});
+		}
+		
+		if (AkComponent->AkAudioEvent)
+		{
+			AkComponent->AkAudioEvent->PostOnActor(this, nullptr, nullptr, nullptr, (AkCallbackType)0, nullptr, StopWhenOwnerIsDestroyed);
+		}
+		else
+		{
+			UE_LOG(LogAkAmbientSound, Warning, TEXT("Failed to post invalid AkAudioEvent on actor '%s'."), *this->GetName());
 		}
 	}
 }

@@ -60,7 +60,7 @@ void UPostEventAsync::Activate()
 	if (DeviceAndWorld.IsValid())
 	{
 		AkCallbackType AkCallbackMask = AkCallbackTypeHelpers::GetCallbackMaskFromBlueprintMask(CallbackMask);
-		PlayingIDFuture = DeviceAndWorld.AkAudioDevice->PostAkAudioEventOnActorAsync(AkEvent, Actor, PostEventCallback, AkCallbackMask);
+		AkEvent->PostOnActor(Actor, PostEventCallback, AkCallbackMask, false);
 
 		WorldContextObject->GetWorld()->GetTimerManager().SetTimer(Timer, this, &UPostEventAsync::PollPostEventFuture, 1.f / 60.f, true);
 	}

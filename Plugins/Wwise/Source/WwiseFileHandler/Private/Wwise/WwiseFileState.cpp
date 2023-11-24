@@ -46,9 +46,8 @@ void FWwiseFileState::IncrementCountAsync(EWwiseFileStateOperationOrigin InOpera
 	FWwiseAsyncCycleCounter OpCycleCounter(GET_STATID(STAT_WwiseFileHandlerStateOperationLatency));
 	
 	++OpenedInstances;
-	AsyncOp([this, InOperationOrigin, OpCycleCounter = MoveTemp(OpCycleCounter), InCallback = MoveTemp(InCallback)]() mutable
+	AsyncOp(WWISEFILEHANDLER_ASYNC_NAME("FWwiseFileState::IncrementCountAsync Async"), [this, InOperationOrigin, OpCycleCounter = MoveTemp(OpCycleCounter), InCallback = MoveTemp(InCallback)]() mutable
 	{
-		SCOPED_WWISEFILEHANDLER_EVENT_4(TEXT("FWwiseFileState::IncrementCountAsync Async"));
 		INC_DWORD_STAT(STAT_WwiseFileHandlerStateOperationsBeingProcessed);
 		UE_CLOG(CreationOpOrder == 0, LogWwiseFileHandler, VeryVerbose, TEXT("FWwiseFileState::IncrementCountAsync %p %s %" PRIu32 ": Initial loading."), this, GetManagingTypeName(), GetShortId());
 
@@ -80,9 +79,8 @@ void FWwiseFileState::DecrementCountAsync(EWwiseFileStateOperationOrigin InOpera
 
 	FWwiseAsyncCycleCounter OpCycleCounter(GET_STATID(STAT_WwiseFileHandlerStateOperationLatency));
 	
-	AsyncOp([this, InOperationOrigin, OpCycleCounter = MoveTemp(OpCycleCounter), InDeleteState = MoveTemp(InDeleteState), InCallback = MoveTemp(InCallback)]() mutable
+	AsyncOp(WWISEFILEHANDLER_ASYNC_NAME("FWwiseFileState::DecrementCountAsync Async"), [this, InOperationOrigin, OpCycleCounter = MoveTemp(OpCycleCounter), InDeleteState = MoveTemp(InDeleteState), InCallback = MoveTemp(InCallback)]() mutable
 	{
-		SCOPED_WWISEFILEHANDLER_EVENT_4(TEXT("FWwiseFileState::DecrementCountAsync Async"));
 		INC_DWORD_STAT(STAT_WwiseFileHandlerStateOperationsBeingProcessed);
 		const auto CurrentOpOrder = CreationOpOrder++;
 		DecrementCount(InOperationOrigin, CurrentOpOrder, MoveTemp(InDeleteState), [OpCycleCounter = MoveTemp(OpCycleCounter), InCallback = MoveTemp(InCallback), CurrentOpOrder]() mutable
@@ -123,7 +121,12 @@ void FWwiseFileState::Term()
 	}
 	if (UNLIKELY(OpenedInstances.load() > 0))
 	{
-		UE_LOG(LogWwiseFileHandler, Error, TEXT("FWwiseFileState::Term %p %s %" PRIu32 ": Terminating with activate states."), this, GetManagingTypeName(), GetShortId());
+		UE_LOG(LogWwiseFileHandler, Log, TEXT("FWwiseFileState::Term %p %s %" PRIu32 ": Terminating with active states. Waiting 10 loops before bailing out."), this, GetManagingTypeName(), GetShortId());
+		for (int i = 0; OpenedInstances.load() > 0 && i < 10; ++i)
+		{
+			FileStateExecutionQueue->AsyncWait(WWISEFILEHANDLER_ASYNC_NAME("FWwiseFileState::Term Wait"), []{});
+		}
+		UE_CLOG(OpenedInstances.load() > 0, LogWwiseFileHandler, Error, TEXT("FWwiseFileState::Term %p %s %" PRIu32 ": Terminating with active states. This might cause a crash."), this, GetManagingTypeName(), GetShortId());
 	}
 	UE_LOG(LogWwiseFileHandler, VeryVerbose, TEXT("FWwiseFileState::Term %p %s %" PRIu32 ": Terminating."), this, GetManagingTypeName(), GetShortId());
 	UE_CLOG(!IsEngineExitRequested() && UNLIKELY(State != EState::Closed), LogWwiseFileHandler, Warning, TEXT("FWwiseFileState::Term %s State: Term unclosed file state %" PRIu32 ". Leaking."), GetManagingTypeName(), GetShortId());
@@ -136,6 +139,8 @@ void FWwiseFileState::Term()
 void FWwiseFileState::IncrementCount(EWwiseFileStateOperationOrigin InOperationOrigin, int InCurrentOpOrder,
                                      FIncrementCountCallback&& InCallback)
 {
+	check(FileStateExecutionQueue->IsRunningInThisThread());
+	
 	IncrementLoadCount(InOperationOrigin);
 
 	IncrementCountOpen(InOperationOrigin, InCurrentOpOrder, MoveTemp(InCallback));
@@ -145,6 +150,8 @@ void FWwiseFileState::IncrementCountOpen(EWwiseFileStateOperationOrigin InOperat
 	FIncrementCountCallback&& InCallback)
 {
 	SCOPED_WWISEFILEHANDLER_EVENT_F_3(TEXT("FWwiseFileState::IncrementCountOpen %s"), GetManagingTypeName());
+	check(FileStateExecutionQueue->IsRunningInThisThread());
+	
 	if (IsBusy())
 	{
 		if (State == EState::Closing)
@@ -156,9 +163,8 @@ void FWwiseFileState::IncrementCountOpen(EWwiseFileStateOperationOrigin InOperat
 
 		UE_LOG(LogWwiseFileHandler, VeryVerbose, TEXT("FWwiseFileState::IncrementCountOpen %s %" PRIu32 ": Deferred."),
 			GetManagingTypeName(), GetShortId());
-		AsyncOpLater([this, InOperationOrigin, InCurrentOpOrder, InCallback = MoveTemp(InCallback)]() mutable
+		AsyncOpLater(WWISEFILEHANDLER_ASYNC_NAME("FWwiseFileState::IncrementCountOpen Busy"), [this, InOperationOrigin, InCurrentOpOrder, InCallback = MoveTemp(InCallback)]() mutable
 		{
-			SCOPED_WWISEFILEHANDLER_EVENT_F_4(TEXT("FWwiseFileState::IncrementCountOpen %s Busy"), GetManagingTypeName());
 			UE_LOG(LogWwiseFileHandler, VeryVerbose, TEXT("FWwiseFileState::IncrementCountOpen %s %" PRIu32 ": Retrying open"),
 							GetManagingTypeName(), GetShortId());
 			IncrementCountOpen(InOperationOrigin, InCurrentOpOrder, MoveTemp(InCallback));			// Call ourselves back
@@ -178,9 +184,8 @@ void FWwiseFileState::IncrementCountOpen(EWwiseFileStateOperationOrigin InOperat
 		// We are currently opening asynchronously. We must wait for that operation to be initially done, so we can keep on processing this.
 		UE_LOG(LogWwiseFileHandler, VeryVerbose, TEXT("FWwiseFileState::IncrementCountOpen %s %" PRIu32 ": Waiting for deferred Opening file."),
 			GetManagingTypeName(), GetShortId());
-		AsyncOp([this, InOperationOrigin, InCurrentOpOrder, InCallback = MoveTemp(InCallback)]() mutable
+		AsyncOp(WWISEFILEHANDLER_ASYNC_NAME("FWwiseFileState::IncrementCountOpen Opening"), [this, InOperationOrigin, InCurrentOpOrder, InCallback = MoveTemp(InCallback)]() mutable
 		{
-			SCOPED_WWISEFILEHANDLER_EVENT_F_4(TEXT("FWwiseFileState::IncrementCountOpen %s Opening"), GetManagingTypeName());
 			UE_LOG(LogWwiseFileHandler, VeryVerbose, TEXT("FWwiseFileState::IncrementCountOpen %s %" PRIu32 ": Retrying open"),
 							GetManagingTypeName(), GetShortId());
 			IncrementCountOpen(InOperationOrigin, InCurrentOpOrder, MoveTemp(InCallback));			// Call ourselves back
@@ -210,6 +215,8 @@ void FWwiseFileState::IncrementCountLoad(EWwiseFileStateOperationOrigin InOperat
 	FIncrementCountCallback&& InCallback)
 {
 	SCOPED_WWISEFILEHANDLER_EVENT_F_3(TEXT("FWwiseFileState::IncrementCountLoad %s"), GetManagingTypeName());
+	check(FileStateExecutionQueue->IsRunningInThisThread());
+	
 	if (IsBusy())
 	{
 		if (State == EState::Unloading)
@@ -227,9 +234,8 @@ void FWwiseFileState::IncrementCountLoad(EWwiseFileStateOperationOrigin InOperat
 
 		UE_LOG(LogWwiseFileHandler, VeryVerbose, TEXT("FWwiseFileState::IncrementCountLoad %s %" PRIu32 ": Deferred."),
 			GetManagingTypeName(), GetShortId());
-		AsyncOpLater([this, InOperationOrigin, InCurrentOpOrder, InCallback = MoveTemp(InCallback)]() mutable
+		AsyncOpLater(WWISEFILEHANDLER_ASYNC_NAME("FWwiseFileState::IncrementCountLoad Busy"), [this, InOperationOrigin, InCurrentOpOrder, InCallback = MoveTemp(InCallback)]() mutable
 		{
-			SCOPED_WWISEFILEHANDLER_EVENT_F_4(TEXT("FWwiseFileState::IncrementCountLoad %s Busy"), GetManagingTypeName());
 			UE_LOG(LogWwiseFileHandler, VeryVerbose, TEXT("FWwiseFileState::IncrementCountLoad %s %" PRIu32 ": Retrying open"),
 							GetManagingTypeName(), GetShortId());
 			IncrementCountOpen(InOperationOrigin, InCurrentOpOrder, MoveTemp(InCallback));			// Restart the op from start
@@ -248,9 +254,8 @@ void FWwiseFileState::IncrementCountLoad(EWwiseFileStateOperationOrigin InOperat
 	{
 		UE_LOG(LogWwiseFileHandler, VeryVerbose, TEXT("FWwiseFileState::IncrementCountLoad %s %" PRIu32 ": Waiting for deferred Loading file."),
 			GetManagingTypeName(), GetShortId());
-		AsyncOp([this, InOperationOrigin, InCurrentOpOrder, InCallback = MoveTemp(InCallback)]() mutable
+		AsyncOp(WWISEFILEHANDLER_ASYNC_NAME("FWwiseFileState::IncrementCountLoad Loading"), [this, InOperationOrigin, InCurrentOpOrder, InCallback = MoveTemp(InCallback)]() mutable
 		{
-			SCOPED_WWISEFILEHANDLER_EVENT_F_4(TEXT("FWwiseFileState::IncrementCountLoad %s Loading"), GetManagingTypeName());
 			UE_LOG(LogWwiseFileHandler, VeryVerbose, TEXT("FWwiseFileState::IncrementCountLoad %s %" PRIu32 ": Retrying load"),
 				GetManagingTypeName(), GetShortId());
 			IncrementCountLoad(InOperationOrigin, InCurrentOpOrder, MoveTemp(InCallback));			// Call ourselves back
@@ -279,6 +284,7 @@ void FWwiseFileState::IncrementCountDone(EWwiseFileStateOperationOrigin InOperat
 	FIncrementCountCallback&& InCallback)
 {
 	SCOPED_WWISEFILEHANDLER_EVENT_F_3(TEXT("FWwiseFileState::IncrementCountDone %s"), GetManagingTypeName());
+	check(FileStateExecutionQueue->IsRunningInThisThread());
 	
 	UE_CLOG(UNLIKELY(InCurrentOpOrder < DoneOpOrder), LogWwiseFileHandler, Error, TEXT("FWwiseFileState::IncrementCountDone %s %" PRIu32 ": CurrentOpOrder %d < DoneOpOrder %d"),
 		GetManagingTypeName(), GetShortId(), InCurrentOpOrder, DoneOpOrder);
@@ -287,9 +293,8 @@ void FWwiseFileState::IncrementCountDone(EWwiseFileStateOperationOrigin InOperat
 	{
 		UE_LOG(LogWwiseFileHandler, VeryVerbose, TEXT("FWwiseFileState::IncrementCountDone %s %" PRIu32 ": Deferred."),
 				GetManagingTypeName(), GetShortId());
-		AsyncOpLater([this, InOperationOrigin, InCurrentOpOrder, InCallback = MoveTemp(InCallback)]() mutable
+		AsyncOpLater(WWISEFILEHANDLER_ASYNC_NAME("FWwiseFileState::IncrementCountDone Busy"), [this, InOperationOrigin, InCurrentOpOrder, InCallback = MoveTemp(InCallback)]() mutable
 		{
-			SCOPED_WWISEFILEHANDLER_EVENT_F_4(TEXT("FWwiseFileState::IncrementCountDone %s Busy"), GetManagingTypeName());
 			IncrementCountDone(InOperationOrigin, InCurrentOpOrder, MoveTemp(InCallback));
 		});
 		return;
@@ -301,9 +306,8 @@ void FWwiseFileState::IncrementCountDone(EWwiseFileStateOperationOrigin InOperat
 	{
 		UE_LOG(LogWwiseFileHandler, VeryVerbose, TEXT("FWwiseFileState::IncrementCountDone %s %" PRIu32 ": Done incrementing. Out of Order callback. Waiting for our turn (remaining %d)."),
 				GetManagingTypeName(), GetShortId(), InCurrentOpOrder-DoneOpOrder);
-		AsyncOpLater([this, InOperationOrigin, InCurrentOpOrder, InCallback = MoveTemp(InCallback)]() mutable
+		AsyncOpLater(WWISEFILEHANDLER_ASYNC_NAME("FWwiseFileState::IncrementCountDone Async"), [this, InOperationOrigin, InCurrentOpOrder, InCallback = MoveTemp(InCallback)]() mutable
 		{
-			SCOPED_WWISEFILEHANDLER_EVENT_F_4(TEXT("FWwiseFileState::IncrementCountDone %s Async"), GetManagingTypeName());
 			IncrementCountDone(InOperationOrigin, InCurrentOpOrder, MoveTemp(InCallback));
 		});
 		return;
@@ -346,6 +350,8 @@ void FWwiseFileState::IncrementCountDone(EWwiseFileStateOperationOrigin InOperat
 void FWwiseFileState::DecrementCount(EWwiseFileStateOperationOrigin InOperationOrigin, int InCurrentOpOrder,
                                   FDeleteFileStateFunction&& InDeleteState, FDecrementCountCallback&& InCallback)
 {
+	check(FileStateExecutionQueue->IsRunningInThisThread());
+	
 	if (UNLIKELY(LoadCount == 0))
 	{
 		UE_LOG(LogWwiseFileHandler, Error, TEXT("FWwiseFileState::DecrementCount %s %" PRIu32 ": File State is already closed."), GetManagingTypeName(), GetShortId());
@@ -363,13 +369,14 @@ void FWwiseFileState::DecrementCountUnload(EWwiseFileStateOperationOrigin InOper
 	FDeleteFileStateFunction&& InDeleteState, FDecrementCountCallback&& InCallback)
 {
 	SCOPED_WWISEFILEHANDLER_EVENT_F_3(TEXT("FWwiseFileState::DecrementCountUnload %s"), GetManagingTypeName());
+	check(FileStateExecutionQueue->IsRunningInThisThread());
+	
 	if (IsBusy())
 	{
 		UE_LOG(LogWwiseFileHandler, VeryVerbose, TEXT("FWwiseFileState::DecrementCountUnload %s %" PRIu32 ": UnloadFromSoundEngine deferred."),
 			GetManagingTypeName(), GetShortId());
-		AsyncOpLater([this, InOperationOrigin, InCurrentOpOrder, InDeleteState = MoveTemp(InDeleteState), InCallback = MoveTemp(InCallback)]() mutable
+		AsyncOpLater(WWISEFILEHANDLER_ASYNC_NAME("FWwiseFileState::DecrementCountUnload Busy"), [this, InOperationOrigin, InCurrentOpOrder, InDeleteState = MoveTemp(InDeleteState), InCallback = MoveTemp(InCallback)]() mutable
 		{
-			SCOPED_WWISEFILEHANDLER_EVENT_F_4(TEXT("FWwiseFileState::DecrementCountUnload %s Busy"), GetManagingTypeName());
 			UE_LOG(LogWwiseFileHandler, VeryVerbose, TEXT("FWwiseFileState::DecrementCountUnload %s %" PRIu32 ": Retrying unload"),
 							GetManagingTypeName(), GetShortId());
 			DecrementCountUnload(InOperationOrigin, InCurrentOpOrder, MoveTemp(InDeleteState), MoveTemp(InCallback));			// Call ourselves back
@@ -398,7 +405,8 @@ void FWwiseFileState::DecrementCountUnloadCallback(EWwiseFileStateOperationOrigi
 	FDeleteFileStateFunction&& InDeleteState, FDecrementCountCallback&& InCallback, EResult InDefer)
 {
 	SCOPED_WWISEFILEHANDLER_EVENT_F_3(TEXT("FWwiseFileState::DecrementCountUnloadCallback %s"), GetManagingTypeName());
-
+	check(FileStateExecutionQueue->IsRunningInThisThread());
+	
 	if (LIKELY(InDefer == EResult::Done))
 	{
 		DecrementCountClose(InOperationOrigin, InCurrentOpOrder, MoveTemp(InDeleteState), MoveTemp(InCallback));				// Continue
@@ -436,13 +444,14 @@ void FWwiseFileState::DecrementCountClose(EWwiseFileStateOperationOrigin InOpera
                                           FDeleteFileStateFunction&& InDeleteState, FDecrementCountCallback&& InCallback)
 {
 	SCOPED_WWISEFILEHANDLER_EVENT_F_3(TEXT("FWwiseFileState::DecrementCountClose %s"), GetManagingTypeName());
+	check(FileStateExecutionQueue->IsRunningInThisThread());
+	
 	if (IsBusy())
 	{
 		UE_LOG(LogWwiseFileHandler, VeryVerbose, TEXT("FWwiseFileState::DecrementCountClose %s %" PRIu32 ": CloseFile deferred."),
 			GetManagingTypeName(), GetShortId());
-		AsyncOpLater([this, InOperationOrigin, InCurrentOpOrder, InDeleteState = MoveTemp(InDeleteState), InCallback = MoveTemp(InCallback)]() mutable
+		AsyncOpLater(WWISEFILEHANDLER_ASYNC_NAME("FWwiseFileState::DecrementCountClose Busy"), [this, InOperationOrigin, InCurrentOpOrder, InDeleteState = MoveTemp(InDeleteState), InCallback = MoveTemp(InCallback)]() mutable
 		{
-			SCOPED_WWISEFILEHANDLER_EVENT_F_4(TEXT("FWwiseFileState::DecrementCountClose %s Busy"), GetManagingTypeName());
 			UE_LOG(LogWwiseFileHandler, VeryVerbose, TEXT("FWwiseFileState::DecrementCountClose %s %" PRIu32 ": Retrying close"),
 							GetManagingTypeName(), GetShortId());
 			DecrementCountClose(InOperationOrigin, InCurrentOpOrder, MoveTemp(InDeleteState), MoveTemp(InCallback));			// Call ourselves back
@@ -471,6 +480,8 @@ void FWwiseFileState::DecrementCountCloseCallback(EWwiseFileStateOperationOrigin
 	FDeleteFileStateFunction&& InDeleteState, FDecrementCountCallback&& InCallback, EResult InDefer)
 {
 	SCOPED_WWISEFILEHANDLER_EVENT_F_3(TEXT("FWwiseFileState::DecrementCountCloseCallback %s"), GetManagingTypeName());
+	check(FileStateExecutionQueue->IsRunningInThisThread());
+	
 	if (LIKELY(InDefer == EResult::Done))
 	{
 		DecrementCountDone(InOperationOrigin, InCurrentOpOrder, MoveTemp(InDeleteState), MoveTemp(InCallback));				// Continue
@@ -508,7 +519,8 @@ void FWwiseFileState::DecrementCountDone(EWwiseFileStateOperationOrigin InOperat
                                          FDeleteFileStateFunction&& InDeleteState, FDecrementCountCallback&& InCallback)
 {
 	SCOPED_WWISEFILEHANDLER_EVENT_F_3(TEXT("FWwiseFileState::DecrementCountDone %s"), GetManagingTypeName());
-
+	check(FileStateExecutionQueue->IsRunningInThisThread());
+	
 	UE_CLOG(UNLIKELY(InCurrentOpOrder < DoneOpOrder), LogWwiseFileHandler, Error, TEXT("FWwiseFileState::DecrementCountDone %s %" PRIu32 ": CurrentOpOrder %d < DoneOpOrder %d"),
 		GetManagingTypeName(), GetShortId(), InCurrentOpOrder, DoneOpOrder);
 	
@@ -516,9 +528,8 @@ void FWwiseFileState::DecrementCountDone(EWwiseFileStateOperationOrigin InOperat
 	{
 		UE_LOG(LogWwiseFileHandler, VeryVerbose, TEXT("FWwiseFileState::DecrementCountDone %s %" PRIu32 ": Deferred."),
 				GetManagingTypeName(), GetShortId());
-		AsyncOpLater([this, InOperationOrigin, InCurrentOpOrder, InDeleteState = MoveTemp(InDeleteState), InCallback = MoveTemp(InCallback)]() mutable
+		AsyncOpLater(WWISEFILEHANDLER_ASYNC_NAME("FWwiseFileState::DecrementCountDone Busy"), [this, InOperationOrigin, InCurrentOpOrder, InDeleteState = MoveTemp(InDeleteState), InCallback = MoveTemp(InCallback)]() mutable
 		{
-			SCOPED_WWISEFILEHANDLER_EVENT_F_4(TEXT("FWwiseFileState::DecrementCountDone %s Busy"), GetManagingTypeName());
 			DecrementCountDone(InOperationOrigin, InCurrentOpOrder, MoveTemp(InDeleteState), MoveTemp(InCallback));
 		});
 		return;
@@ -530,9 +541,8 @@ void FWwiseFileState::DecrementCountDone(EWwiseFileStateOperationOrigin InOperat
 	{
 		UE_LOG(LogWwiseFileHandler, VeryVerbose, TEXT("FWwiseFileState::DecrementCountDone %s %" PRIu32 ": Done decrementing. Out of Order callback. Waiting for our turn (remaining %d)."),
 				GetManagingTypeName(), GetShortId(), InCurrentOpOrder-DoneOpOrder);
-		AsyncOpLater([this, InOperationOrigin, InCurrentOpOrder, InDeleteState = MoveTemp(InDeleteState), InCallback = MoveTemp(InCallback)]() mutable
+		AsyncOpLater(WWISEFILEHANDLER_ASYNC_NAME("FWwiseFileState::DecrementCountDone Async"), [this, InOperationOrigin, InCurrentOpOrder, InDeleteState = MoveTemp(InDeleteState), InCallback = MoveTemp(InCallback)]() mutable
 		{
-			SCOPED_WWISEFILEHANDLER_EVENT_F_4(TEXT("FWwiseFileState::DecrementCountDone %s Async"), GetManagingTypeName());
 			DecrementCountDone(InOperationOrigin, InCurrentOpOrder, MoveTemp(InDeleteState), MoveTemp(InCallback));
 		});
 		return;
@@ -558,6 +568,8 @@ void FWwiseFileState::DecrementCountDone(EWwiseFileStateOperationOrigin InOperat
 
 void FWwiseFileState::IncrementLoadCount(EWwiseFileStateOperationOrigin InOperationOrigin)
 {
+	check(FileStateExecutionQueue->IsRunningInThisThread());
+	
 	const bool bIncrementStreamingCount = (InOperationOrigin == EWwiseFileStateOperationOrigin::Streaming);
 
 	if (bIncrementStreamingCount) ++StreamingCount;
@@ -574,7 +586,7 @@ bool FWwiseFileState::CanOpenFile() const
 
 void FWwiseFileState::OpenFileSucceeded(FOpenFileCallback&& InCallback)
 {
-	AsyncOp([this, InCallback = MoveTemp(InCallback)]() mutable
+	AsyncOp(WWISEFILEHANDLER_ASYNC_NAME("FWwiseFileState::OpenFileSucceeded"), [this, InCallback = MoveTemp(InCallback)]() mutable
 	{
 		if (UNLIKELY(State != EState::Opening))
 		{
@@ -592,7 +604,7 @@ void FWwiseFileState::OpenFileSucceeded(FOpenFileCallback&& InCallback)
 
 void FWwiseFileState::OpenFileFailed(FOpenFileCallback&& InCallback)
 {
-	AsyncOp([this, InCallback = MoveTemp(InCallback)]() mutable
+	AsyncOp(WWISEFILEHANDLER_ASYNC_NAME("FWwiseFileState::OpenFileFailed"), [this, InCallback = MoveTemp(InCallback)]() mutable
 	{
 		INC_DWORD_STAT(STAT_WwiseFileHandlerTotalErrorCount);
 		if (UNLIKELY(State != EState::Opening))
@@ -616,7 +628,7 @@ bool FWwiseFileState::CanLoadInSoundEngine() const
 
 void FWwiseFileState::LoadInSoundEngineSucceeded(FLoadInSoundEngineCallback&& InCallback)
 {
-	AsyncOp([this, InCallback = MoveTemp(InCallback)]() mutable
+	AsyncOp(WWISEFILEHANDLER_ASYNC_NAME("FWwiseFileState::LoadInSoundEngineSucceeded"), [this, InCallback = MoveTemp(InCallback)]() mutable
 	{
 		if (UNLIKELY(State != EState::Loading))
 		{
@@ -634,7 +646,7 @@ void FWwiseFileState::LoadInSoundEngineSucceeded(FLoadInSoundEngineCallback&& In
 
 void FWwiseFileState::LoadInSoundEngineFailed(FLoadInSoundEngineCallback&& InCallback)
 {
-	AsyncOp([this, InCallback = MoveTemp(InCallback)]() mutable
+	AsyncOp(WWISEFILEHANDLER_ASYNC_NAME("FWwiseFileState::LoadInSoundEngineFailed"), [this, InCallback = MoveTemp(InCallback)]() mutable
 	{
 		INC_DWORD_STAT(STAT_WwiseFileHandlerTotalErrorCount);
 		if (UNLIKELY(State != EState::Loading))
@@ -669,7 +681,7 @@ bool FWwiseFileState::CanUnloadFromSoundEngine() const
 
 void FWwiseFileState::UnloadFromSoundEngineDone(FUnloadFromSoundEngineCallback&& InCallback)
 {
-	AsyncOp([this, InCallback = MoveTemp(InCallback)]() mutable
+	AsyncOp(WWISEFILEHANDLER_ASYNC_NAME("FWwiseFileState::UnloadFromSoundEngineDone"), [this, InCallback = MoveTemp(InCallback)]() mutable
 	{
 		if (UNLIKELY(State != EState::Unloading && State != EState::WillReload))
 		{
@@ -693,7 +705,7 @@ void FWwiseFileState::UnloadFromSoundEngineDone(FUnloadFromSoundEngineCallback&&
 
 void FWwiseFileState::UnloadFromSoundEngineToClosedFile(FUnloadFromSoundEngineCallback&& InCallback)
 {
-	AsyncOp([this, InCallback = MoveTemp(InCallback)]() mutable
+	AsyncOp(WWISEFILEHANDLER_ASYNC_NAME("FWwiseFileState::UnloadFromSoundEngineToClosedFile"), [this, InCallback = MoveTemp(InCallback)]() mutable
 	{
 		if (UNLIKELY(State != EState::Unloading && State != EState::WillReload))
 		{
@@ -717,7 +729,7 @@ void FWwiseFileState::UnloadFromSoundEngineToClosedFile(FUnloadFromSoundEngineCa
 
 void FWwiseFileState::UnloadFromSoundEngineDefer(FUnloadFromSoundEngineCallback&& InCallback)
 {
-	AsyncOp([this, InCallback = MoveTemp(InCallback)]() mutable
+	AsyncOp(WWISEFILEHANDLER_ASYNC_NAME("FWwiseFileState::UnloadFromSoundEngineDefer"), [this, InCallback = MoveTemp(InCallback)]() mutable
 	{
 		if (UNLIKELY(State != EState::Unloading && State != EState::WillReload))
 		{
@@ -748,7 +760,7 @@ bool FWwiseFileState::CanCloseFile() const
 
 void FWwiseFileState::CloseFileDone(FCloseFileCallback&& InCallback)
 {
-	AsyncOp([this, InCallback = MoveTemp(InCallback)]() mutable
+	AsyncOp(WWISEFILEHANDLER_ASYNC_NAME("FWwiseFileState::CloseFileDone"), [this, InCallback = MoveTemp(InCallback)]() mutable
 	{
 		if (UNLIKELY(State != EState::Closing && State != EState::WillReopen))
 		{
@@ -772,7 +784,7 @@ void FWwiseFileState::CloseFileDone(FCloseFileCallback&& InCallback)
 
 void FWwiseFileState::CloseFileDefer(FCloseFileCallback&& InCallback)
 {
-	AsyncOp([this, InCallback = MoveTemp(InCallback)]() mutable
+	AsyncOp(WWISEFILEHANDLER_ASYNC_NAME("FWwiseFileState::CloseFileDone"), [this, InCallback = MoveTemp(InCallback)]() mutable
 	{
 		if (UNLIKELY(State != EState::Closing && State != EState::WillReopen))
 		{
@@ -812,29 +824,32 @@ bool FWwiseFileState::IsBusy() const
 	}
 }
 
-void FWwiseFileState::AsyncOp(FBasicFunction&& Fct)
+void FWwiseFileState::AsyncOp(const TCHAR* InDebugName, FBasicFunction&& Fct)
 {
 	if (UNLIKELY(!FileStateExecutionQueue))
 	{
 		UE_LOG(LogWwiseFileHandler, Error, TEXT("FWwiseFileState::AsyncOp %s %" PRIu32 ": Doing async op on terminated state"), GetManagingTypeName(), GetShortId());
 		return Fct();
 	}
-	FileStateExecutionQueue->Async(MoveTemp(Fct));
+	FileStateExecutionQueue->Async(InDebugName, MoveTemp(Fct));
 }
 
-void FWwiseFileState::AsyncOpLater(FBasicFunction&& Fct)
+void FWwiseFileState::AsyncOpLater(const TCHAR* InDebugName, FBasicFunction&& Fct)
 {
-	LaterOpQueue.Enqueue(MoveTemp(Fct));
+	LaterOpQueue.Enqueue(FOpQueueItem(InDebugName, MoveTemp(Fct)));
 }
 
 void FWwiseFileState::ProcessLaterOpQueue()
 {
 	int Count = 0;
-	FBasicFunction Fct;
-	while (LaterOpQueue.Dequeue(Fct))
+	for (FOpQueueItem* Op; (Op = LaterOpQueue.Peek()) != nullptr; LaterOpQueue.Pop())
 	{
 		++Count;
-		AsyncOp(MoveTemp(Fct));
+#if ENABLE_NAMED_EVENTS
+		AsyncOp(Op->DebugName, MoveTemp(Op->Function));
+#else
+		AsyncOp(nullptr, MoveTemp(Op->Function));
+#endif
 	}
 	UE_CLOG(Count > 0, LogWwiseFileHandler, VeryVerbose, TEXT("FWwiseFileState::ProcessLaterOpQueue %s %" PRIu32 ": Added back %d operations to be executed."),  GetManagingTypeName(), GetShortId(), Count);
 }

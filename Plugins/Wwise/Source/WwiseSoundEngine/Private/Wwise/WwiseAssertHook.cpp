@@ -18,7 +18,7 @@ Copyright (c) 2023 Audiokinetic Inc.
 #include "Wwise/WwiseAssertHook.h"
 #include "Wwise/Stats/SoundEngine.h"
 
-void WWISESOUNDENGINE_API WwiseAssertHook(const char* ExpressionChar, const char* FilenameChar, int LineNumber)
+void WwiseAssertHook(const char* ExpressionChar, const char* FilenameChar, int LineNumber)
 {
 	const FString Expression(ExpressionChar ? ExpressionChar : "[null]");
 	const FString Filename(FilenameChar ? FilenameChar : "[null]");

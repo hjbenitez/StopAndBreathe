@@ -30,6 +30,19 @@ the specific language governing permissions and limitations under the License.
 
 #include <AK/SoundEngine/Common/AkSoundEngine.h>
 #include <AK/Tools/Common/AkPlatformFuncs.h>
+
+// Fix for Windows SDK 10.0.17763.0
+#if !defined(_DEBUG)
+namespace Microsoft {
+	namespace WRL {
+		namespace Details {
+			template <typename T>
+			inline void CheckForDuplicateEntries() {}
+		}
+	}
+}
+#endif
+
 #include <mmdeviceapi.h>
 
 namespace AK

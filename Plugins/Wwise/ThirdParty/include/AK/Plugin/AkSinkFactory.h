@@ -44,7 +44,7 @@ the specific language governing permissions and limitations under the License.
 /// <br><b>Library file:</b> AkSink.lib
 
 const unsigned long AKEFFECTID_SINK = 152;
-#if (defined AK_WIN && !defined AK_USE_UWP_API)
+#if defined(AK_WIN)
 AK_STATIC_LINK_PLUGIN(AkSink)
 #endif
 

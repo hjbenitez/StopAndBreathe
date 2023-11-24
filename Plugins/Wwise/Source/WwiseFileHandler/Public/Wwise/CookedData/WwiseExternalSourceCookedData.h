@@ -51,3 +51,7 @@ inline bool operator==(const FWwiseExternalSourceCookedData& InLhs, const FWwise
 {
 	return InLhs.Cookie == InRhs.Cookie;
 }
+inline bool operator!=(const FWwiseExternalSourceCookedData& InLhs, const FWwiseExternalSourceCookedData& InRhs)
+{
+	return InLhs.Cookie != InRhs.Cookie;
+}

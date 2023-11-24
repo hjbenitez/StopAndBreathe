@@ -144,6 +144,23 @@ public:
 		Free(ptr);
 	}
 
+	void Transfer(AkDynaBlkPool<T, uPoolChunkSize, TAlloc>& in_src)
+	{
+		m_chunkList.Transfer(in_src.m_chunkList);
+
+#ifdef AK_DYNA_BLK_STATS
+		uPeakUsedBytes = in_src.uPeakUsedBytes;
+		uPeakAllocdBytes = in_src.uPeakAllocdBytes;
+		uCurrentAllocdBytes = in_src.uCurrentAllocdBytes;
+		uCurrentUsedBytes = in_src.uCurrentUsedBytes;
+
+		in_src.uPeakUsedBytes = 0;
+		in_src.uPeakAllocdBytes = 0;
+		in_src.uCurrentAllocdBytes = 0;
+		in_src.uCurrentUsedBytes = 0;
+#endif
+	}
+
 private:
 	T* Alloc()
 	{

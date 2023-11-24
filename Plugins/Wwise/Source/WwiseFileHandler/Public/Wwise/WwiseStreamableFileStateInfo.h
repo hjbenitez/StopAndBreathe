@@ -29,7 +29,11 @@ class WWISEFILEHANDLER_API FWwiseStreamableFileStateInfo: protected AkFileDesc
 public:
 	static FWwiseStreamableFileStateInfo* GetFromFileDesc(AkFileDesc& InFileDesc)
 	{
+#if WWISE_2023_1_OR_LATER
+		return static_cast<FWwiseStreamableFileStateInfo*>(&InFileDesc);
+#else
 		return static_cast<FWwiseStreamableFileStateInfo*>(static_cast<AkFileDesc*>(InFileDesc.pCustomParam));
+#endif
 	}
 
 	AkFileDesc* GetFileDesc()

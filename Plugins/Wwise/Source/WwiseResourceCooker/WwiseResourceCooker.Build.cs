@@ -29,7 +29,6 @@ public class WwiseResourceCooker : ModuleRules
 				"Core",
 				"CoreUObject",
 				"Engine",
-
 				"WwiseResourceLoader"
 			}
 		);

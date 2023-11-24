@@ -26,7 +26,7 @@ struct WWISERESOURCELOADER_API FWwiseSharedGroupValueKey
 {
 	GENERATED_BODY()
 
-	TSharedRef<FWwiseGroupValueCookedData> GroupValueCookedData;
+	TSharedRef<FWwiseGroupValueCookedData, ESPMode::ThreadSafe> GroupValueCookedData;
 
 	FWwiseSharedGroupValueKey() :
 		GroupValueCookedData(new FWwiseGroupValueCookedData)

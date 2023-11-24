@@ -17,9 +17,11 @@ Copyright (c) 2023 Audiokinetic Inc.
 
 #pragma once
 
+#include "CoreTypes.h"
+
 #include "Wwise/WwiseSoundEngineVersionModule.h"
 
-class FWwiseSoundEngine_2022_1 : public IWwiseSoundEngineVersionModule
+class WWISESOUNDENGINE_API FWwiseSoundEngine_2022_1 : public IWwiseSoundEngineVersionModule
 {
 public:
 	virtual IWwiseCommAPI* GetComm() override;

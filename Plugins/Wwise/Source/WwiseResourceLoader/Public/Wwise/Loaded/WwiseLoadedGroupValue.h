@@ -35,6 +35,7 @@ struct WWISERESOURCELOADER_API FWwiseLoadedGroupValueInfo
 		FLoadedData& operator=(const FLoadedData&) = delete;
 
 		bool bLoaded = false;
+		int IsProcessing{0};
 
 		bool IsLoaded() const;
 	} LoadedData;
@@ -48,6 +49,7 @@ private:
 
 using FWwiseLoadedGroupValueList = TDoubleLinkedList<FWwiseLoadedGroupValueInfo>;
 using FWwiseLoadedGroupValueListNode = FWwiseLoadedGroupValueList::TDoubleLinkedListNode;
-using FWwiseLoadedGroupValue = FWwiseLoadedGroupValueListNode*;
-using FWwiseLoadedGroupValuePromise = TWwisePromise<FWwiseLoadedGroupValue>;
-using FWwiseLoadedGroupValueFuture = TWwiseFuture<FWwiseLoadedGroupValue>;
+using FWwiseLoadedGroupValuePtr = FWwiseLoadedGroupValueListNode*;
+using FWwiseLoadedGroupValuePtrAtomic = std::atomic<FWwiseLoadedGroupValuePtr>;
+using FWwiseLoadedGroupValuePromise = TWwisePromise<FWwiseLoadedGroupValuePtr>;
+using FWwiseLoadedGroupValueFuture = TWwiseFuture<FWwiseLoadedGroupValuePtr>;

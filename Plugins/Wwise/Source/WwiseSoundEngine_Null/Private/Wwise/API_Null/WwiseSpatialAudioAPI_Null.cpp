@@ -169,9 +169,35 @@ AKRESULT FWwiseSpatialAudioAPI_Null::RemovePortal(
 	return AK_NotImplemented;
 }
 
+AKRESULT FWwiseSpatialAudioAPI_Null::SetReverbZone(
+	AkRoomID in_ReverbZone,
+	AkRoomID in_ParentRoom,
+	AkReal32 in_transitionRegionWidth
+)
+{
+	SCOPE_CYCLE_COUNTER(STAT_WwiseSoundEngineAPI_Null);
+	return AK_NotImplemented;
+}
+
+AKRESULT FWwiseSpatialAudioAPI_Null::RemoveReverbZone(
+	AkRoomID in_ReverbZone
+)
+{
+	SCOPE_CYCLE_COUNTER(STAT_WwiseSoundEngineAPI_Null);
+	return AK_NotImplemented;
+}
+
 AKRESULT FWwiseSpatialAudioAPI_Null::SetGameObjectInRoom(
 	AkGameObjectID in_gameObjectID,
 	AkRoomID in_CurrentRoomID
+)
+{
+	SCOPE_CYCLE_COUNTER(STAT_WwiseSoundEngineAPI_Null);
+	return AK_NotImplemented;
+}
+
+AKRESULT FWwiseSpatialAudioAPI_Null::UnsetGameObjectInRoom(
+	AkGameObjectID in_gameObjectID
 )
 {
 	SCOPE_CYCLE_COUNTER(STAT_WwiseSoundEngineAPI_Null);
@@ -190,6 +216,14 @@ AKRESULT FWwiseSpatialAudioAPI_Null::SetReflectionsOrder(
 AKRESULT FWwiseSpatialAudioAPI_Null::SetDiffractionOrder(
 	AkUInt32 in_uDiffractionOrder,
 	bool in_bUpdatePaths
+)
+{
+	SCOPE_CYCLE_COUNTER(STAT_WwiseSoundEngineAPI_Null);
+	return AK_NotImplemented;
+}
+
+AKRESULT FWwiseSpatialAudioAPI_Null::SetMaxEmitterRoomAuxSends(
+	AkUInt32 in_uMaxEmitterRoomAuxSends
 )
 {
 	SCOPE_CYCLE_COUNTER(STAT_WwiseSoundEngineAPI_Null);
@@ -320,14 +354,12 @@ AKRESULT FWwiseSpatialAudioAPI_Null::FReverbEstimation::EstimateTimeToFirstRefle
 	return AK_NotImplemented;
 }
 
-AKRESULT FWwiseSpatialAudioAPI_Null::FReverbEstimation::EstimateHFDamping(
+AkReal32 FWwiseSpatialAudioAPI_Null::FReverbEstimation::EstimateHFDamping(
 	AkAcousticTexture* in_textures,
 	float* in_surfaceAreas,
-	int in_numTextures,
-	AkReal32& out_hfDamping
-
+	int in_numTextures
 )
 {
 	SCOPE_CYCLE_COUNTER(STAT_WwiseSoundEngineAPI_Null);
-	return AK_NotImplemented;
+	return .0f;
 }

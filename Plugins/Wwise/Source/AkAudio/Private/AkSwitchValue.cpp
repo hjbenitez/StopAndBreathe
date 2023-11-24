@@ -35,10 +35,7 @@ void UAkSwitchValue::LoadGroupValue()
 		return;
 	}
 	
-	if (LoadedGroupValue)
-	{
-		UnloadGroupValue(false);
-	}
+	UnloadGroupValue(false);
 
 #if WITH_EDITORONLY_DATA
 	if (!IWwiseProjectDatabaseModule::ShouldInitializeProjectDatabase())
@@ -61,7 +58,13 @@ void UAkSwitchValue::LoadGroupValue()
 		return;
 	}
 #endif
-	LoadedGroupValue = ResourceLoader->LoadGroupValue(GroupValueCookedData);
+	
+	const auto NewlyLoadedGroupValue = ResourceLoader->LoadGroupValue(GroupValueCookedData);
+	auto PreviouslyLoadedGroupValue = LoadedGroupValue.exchange(NewlyLoadedGroupValue);
+	if (UNLIKELY(PreviouslyLoadedGroupValue))
+	{
+		ResourceLoader->UnloadGroupValue(MoveTemp(PreviouslyLoadedGroupValue));
+	}
 }
 
 void UAkSwitchValue::Serialize(FArchive& Ar)

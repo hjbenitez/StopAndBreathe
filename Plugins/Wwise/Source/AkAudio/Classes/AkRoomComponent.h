@@ -29,14 +29,16 @@ class AKAUDIO_API UAkRoomComponent : public UAkGameObject
 	GENERATED_BODY()
 
 public:
+	typedef WwiseUnrealHelper::AkSpatialAudioIDKeyFuncs<UAkPortalComponent*, false> PortalComponentSpatialAudioIDKeyFuncs;
+	typedef TMap<AkPortalID, UAkPortalComponent*, FDefaultSetAllocator, PortalComponentSpatialAudioIDKeyFuncs> PortalComponentMap;
+
 	UAkRoomComponent(const class FObjectInitializer& ObjectInitializer);
 
 	/** 
-	* Enable room transmission feature. Additional properties are available in the Room category. 
-	* If Enable Room begins as false, changing Enable Room during runtime will only have an effect
-	* if Room Is Dynamic = true.
+	* Enable the Room Component to set this volume as a Spatial Audio Room. Additional properties are available in the Room and AkEvent categories. 
+	* Changing this property during runtime only has an effect if the Room is dynamic (see the Room Component category).
 	*/
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Toggle, meta = (DisplayName = "Enable Room"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="EnableComponent", meta = (DisplayName = "Enable Room"))
 	bool bEnable = false;
 
 	/** 
@@ -46,8 +48,11 @@ public:
 	* move who have bDynamic = true).
 	* When Room Is Dynamic = true, enabling and disabling rooms will have immediate effect, without needing
 	* to update emitters and/or listeners directly. */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Toggle, meta = (DisplayName = "Room Is Dynamic"))
+	UPROPERTY(EditAnywhere, BlueprintSetter = SetDynamic, Category = "Room", meta = (DisplayName = "Room Is Dynamic"))
 	bool bDynamic = false;
+
+	UFUNCTION(BlueprintSetter, Category = "Room")
+	void SetDynamic(bool bInDynamic);
 
 	/**
 	* The precedence in which the Rooms will be applied. In the case of overlapping rooms, only the one
@@ -84,6 +89,27 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Audiokinetic|AkRoomComponent")
 	UPrimitiveComponent* GetPrimitiveParent() const;
+
+	/**
+	* Establishes a parent-child relationship between this Room and a parent Room and allows for sound propagation between them as if they were the same Room, without the need for a connecting Portal.
+	* Setting a Room as a Reverb Zone is useful in situations where two or more acoustic environments are not easily modeled as closed Rooms connected by Portals.
+	* Possible uses for Reverb Zones include: a covered area with no walls, a forested area within an outdoor space, or any situation where multiple reverb effects are desired within a common space.
+	* Reverb Zones have many advantages compared to standard Game-Defined Auxiliary Sends (i.e. compared to the AkLateReverbComponent or the AkReverbVolume). They are part of the wet path, and form reverb chains with other Rooms;
+	* they are spatialized according to their 3D extent; they are also subject to other acoustic phenomena simulated in Wwise Spatial Audio, such as diffraction and transmission.
+	* A Reverb Zone needs to be a Room component with an associated geometry.
+	*
+	* @param InParentRoom - The parent Room component. A parent Room can have multiple Reverb Zones, but a Reverb Zone can only have a single Parent. If a Room is already assigned to a parent Room, it is first removed from the old parent (exactly as if RemoveReverbZone were called) before then being assigned to the new parent Room. A Reverb Zone can be the parent of another Reverb Zone. A Room cannot be its own parent. Defaults to the 'Outdoors' Room if left empty.
+	* @param InTransitionRegionWidth - Width of the transition region between the Reverb Zone and its parent. The transition region acts the same as the depth of a Portal but centered around the Reverb Zone geometry. It only applies where transmission loss is set to 0. The value must be positive. Negative values are treated as 0.
+	*/
+	UFUNCTION(BlueprintCallable, Category = "Audiokinetic|AkRoomComponent")
+	void SetReverbZone(const UAkRoomComponent* InParentRoom, float InTransitionRegionWidth);
+
+	/**
+	* Removes this Reverb Zone from its parent.
+	* Sound can no longer propagate between the two rooms, unless they are explicitly connected with a Portal.
+	*/
+	UFUNCTION(BlueprintCallable, Category = "Audiokinetic|AkRoomComponent")
+	void RemoveReverbZone();
 
 	/** Register a room in AK Spatial Audio. */
 	void AddSpatialAudioRoom();
@@ -132,6 +158,7 @@ public:
 
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+	void OnParentNameChanged();
 #endif
 
 	/** Set the geometry component that will be used to send the geometry of the room to Wwise. For example, in a Blueprint that has a static mesh component with an AkGeometry child component, this function can be called in BeginPlay to associate that AkGeometry component with this room component.
@@ -139,6 +166,13 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Audiokinetic|AkRoomComponent")
 	void SetGeometryComponent(UAkAcousticTextureSetComponent* textureSetComponent);
+
+	void AddPortalConnection(UAkPortalComponent* in_pPortal);
+	void RemovePortalConnection(AkPortalID in_portalID);
+	const PortalComponentMap& GetConnectedPortals() const { return ConnectedPortals; }
+
+	bool IsAReverbZoneInWwise() const { return bIsAReverbZoneInWwise; }
+	AkRoomID GetParentRoomID() const { return ParentRoomID; }
 
 	FString GetRoomName();
 	UAkLateReverbComponent* GetReverbComponent();
@@ -149,6 +183,8 @@ private:
 	UPROPERTY(Transient)
 	class UAkAcousticTextureSetComponent* GeometryComponent = nullptr;
 
+	PortalComponentMap ConnectedPortals;
+
 	void InitializeParent();
 	void GetRoomParams(AkRoomParams& outParams);
 	bool EncompassesPoint(FVector Point, float SphereRadius = 0.f, float* OutDistanceToPoint = nullptr) const;
@@ -157,6 +193,11 @@ private:
 	void RemoveGeometry();
 	float SecondsSinceMovement = 0.0f;
 	bool Moving = false;
+
+	bool bIsAReverbZoneInWwise = false;
+	// Parent Room ID is valid if current Room is a Reverb Zone
+	AkRoomID ParentRoomID = AK::SpatialAudio::kOutdoorRoomID;
+
 #if WITH_EDITOR
 	void HandleObjectsReplaced(const TMap<UObject*, UObject*>& ReplacementMap);
 	bool bRequiresDeferredBeginPlay = false;

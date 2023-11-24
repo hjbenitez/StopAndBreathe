@@ -219,8 +219,8 @@ public:
 							[
 								SNew(SEditableTextBox)
 								.HintText(LOCTEXT("AkAudioRTPCNameHint", "Name of the AkAudioRTPC"))
-								.OnTextCommitted(this, &SCreateAkAudioRTPCSectionDialog::OnEventNameCommited)
-								.OnTextChanged(this, &SCreateAkAudioRTPCSectionDialog::OnEventNameCommited, ETextCommit::Default)
+								.OnTextCommitted(this, &SCreateAkAudioRTPCSectionDialog::OnEventNameCommitted)
+								.OnTextChanged(this, &SCreateAkAudioRTPCSectionDialog::OnEventNameCommitted, ETextCommit::Default)
 								.MinDesiredWidth(200)
 								.RevertTextOnEscape(true)
 							]
@@ -275,7 +275,7 @@ protected:
 
 private:
 
-	void OnEventNameCommited(const FText& InText, ETextCommit::Type InCommitType)
+	void OnEventNameCommitted(const FText& InText, ETextCommit::Type InCommitType)
 	{
 		Options->RTPCName = InText.ToString();
 

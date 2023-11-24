@@ -43,10 +43,6 @@ public:
 
 	TArray<FWwiseLanguageCookedData> GetLanguages();
 
-protected :
-	FWwiseLoadedInitBank LoadedInitBank;
-
-
 public:
 	UAkInitBank():LoadedInitBank(nullptr){}
 
@@ -69,4 +65,6 @@ protected:
 #if WITH_EDITORONLY_DATA
 	virtual void MigrateWwiseObjectInfo() override;
 #endif
+
+	FWwiseLoadedInitBankPtrAtomic LoadedInitBank{nullptr};
 };

@@ -392,6 +392,6 @@ public:
 private:
 	void LoadEventData();
 	void UnloadEventData(bool bAsync);
-	FWwiseLoadedEvent LoadedEvent;
+	FWwiseLoadedEventPtrAtomic LoadedEvent{nullptr};
 };
 

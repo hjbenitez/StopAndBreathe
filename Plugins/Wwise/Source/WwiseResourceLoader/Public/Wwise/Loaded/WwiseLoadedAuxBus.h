@@ -37,6 +37,7 @@ struct WWISERESOURCELOADER_API FWwiseLoadedAuxBusInfo
 
 		TArray<const FWwiseSoundBankCookedData*> LoadedSoundBanks;
 		TArray<const FWwiseMediaCookedData*> LoadedMedia;
+		int IsProcessing{0};
 
 		bool IsLoaded() const;
 	} LoadedData;
@@ -50,6 +51,7 @@ private:
 
 using FWwiseLoadedAuxBusList = TDoubleLinkedList<FWwiseLoadedAuxBusInfo>;
 using FWwiseLoadedAuxBusListNode = FWwiseLoadedAuxBusList::TDoubleLinkedListNode;
-using FWwiseLoadedAuxBus = FWwiseLoadedAuxBusListNode*;
-using FWwiseLoadedAuxBusPromise = TWwisePromise<FWwiseLoadedAuxBus>;
-using FWwiseLoadedAuxBusFuture = TWwiseFuture<FWwiseLoadedAuxBus>;
+using FWwiseLoadedAuxBusPtr = FWwiseLoadedAuxBusListNode*;
+using FWwiseLoadedAuxBusPtrAtomic = std::atomic<FWwiseLoadedAuxBusPtr>;
+using FWwiseLoadedAuxBusPromise = TWwisePromise<FWwiseLoadedAuxBusPtr>;
+using FWwiseLoadedAuxBusFuture = TWwiseFuture<FWwiseLoadedAuxBusPtr>;

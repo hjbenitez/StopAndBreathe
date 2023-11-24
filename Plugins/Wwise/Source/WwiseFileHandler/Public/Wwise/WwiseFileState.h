@@ -19,6 +19,7 @@ Copyright (c) 2023 Audiokinetic Inc.
 
 #include "Wwise/WwiseExecutionQueue.h"
 #include "Wwise/WwiseFileStateTools.h"
+#include <atomic>
 
 class FWwiseAsyncCycleCounter;
 class FWwiseStreamableFileStateInfo;
@@ -47,10 +48,11 @@ public:
 	}
 
 	/// A serial queue of operations being processed for this state
-	FWwiseExecutionQueue* FileStateExecutionQueue{ new FWwiseExecutionQueue };
+	FWwiseExecutionQueue* FileStateExecutionQueue{ new FWwiseExecutionQueue(WWISE_EQ_NAME("FWwiseFileState")) };
 
-	using FBasicFunction = TUniqueFunction<void()>;
-	using FLaterOpQueue = TQueue<FBasicFunction, EQueueMode::Spsc>;
+	using FBasicFunction = FWwiseExecutionQueue::FBasicFunction;
+	using FOpQueueItem = FWwiseExecutionQueue::FOpQueueItem; 
+	using FLaterOpQueue = TQueue<FOpQueueItem, EQueueMode::Spsc>;
 
 	/// Operation queue containing operations waiting to be unclogged (such as a load time)
 	FLaterOpQueue LaterOpQueue;
@@ -170,8 +172,8 @@ protected:
 
 	bool IsBusy() const;
 	
-	void AsyncOp(FBasicFunction&& Fct);
-	void AsyncOpLater(FBasicFunction&& Fct);
+	void AsyncOp(const TCHAR* InDebugName, FBasicFunction&& Fct);
+	void AsyncOpLater(const TCHAR* InDebugName, FBasicFunction&& Fct);
 	void ProcessLaterOpQueue();
 };
 

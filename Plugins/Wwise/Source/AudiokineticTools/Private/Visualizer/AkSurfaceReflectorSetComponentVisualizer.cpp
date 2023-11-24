@@ -22,7 +22,7 @@ AkWwiseAcousticsComponentVisualizer.cpp:
 #include "AkAudioDevice.h"
 #include "AkSurfaceReflectorSetComponent.h"
 #include "AkSpatialAudioVolume.h"
-#include "AkUEFeatures.h"
+#include "WwiseUEFeatures.h"
 #include "Editor.h"
 #include "EditorModeManager.h"
 #include "EditorModes.h"

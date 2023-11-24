@@ -65,7 +65,7 @@ public:
 	
 private:
 	void OnFileTextChanged(const FText& InFilePath);
-	void OnFileTextCommited(const FText& InText, ETextCommit::Type InCommitType);
+	void OnFileTextCommitted(const FText& InText, ETextCommit::Type InCommitType);
 	FText GetFilePathText() const;
 	bool OpenDefinitionFilePicker(FString& OutDirectory, const FString& DefaultPath);
 	FReply BrowseForFile();

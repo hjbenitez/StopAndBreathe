@@ -16,7 +16,23 @@ Copyright (c) 2023 Audiokinetic Inc.
 *******************************************************************************/
 
 #include "Platforms/AkPlatform_Mac/AkMacInitializationSettings.h"
+#include "WwiseDefines.h"
 #include "AkAudioDevice.h"
+
+///////////////////////////////////////////////////////////////////////////
+// UAkMacInitializationSettings
+
+void FAkMacAdvancedInitializationSettings::FillInitializationStructure(FAkInitializationStructure& InitializationStructure) const
+{
+	Super::FillInitializationStructure(InitializationStructure);
+	
+#if PLATFORM_MAC
+#if WWISE_2023_1_OR_LATER
+	InitializationStructure.PlatformInitSettings.uNumSpatialAudioPointSources = uNumSpatialAudioPointSources;
+	InitializationStructure.PlatformInitSettings.bVerboseSystemOutput = bVerboseSystemOutput;
+#endif
+#endif
+}
 
 //////////////////////////////////////////////////////////////////////////
 // UAkMacInitializationSettings

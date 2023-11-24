@@ -17,9 +17,9 @@ Copyright (c) 2023 Audiokinetic Inc.
 
 #include "AkMigrationWidgets.h" 
 #include "AkSettingsPerUser.h"
-#include "AkUEFeatures.h"
+#include "WwiseUEFeatures.h"
 #include "AkUnrealEditorHelper.h"
-#include "AkUnrealHelper.h"
+#include "WwiseUnrealHelper.h"
 #include "AkWaapiClient.h"
 
 #include "DesktopPlatformModule.h"
@@ -257,7 +257,7 @@ FText SMigrationWidget::GetContinueToolTip() const
 		}
 		if (BankTransferWidget->BankTransferMethod == AkAssetMigration::EBankTransferMode::DefinitionFile && BankTransferWidget->SoundBankDefinitionFilePath.IsEmpty())
 		{
-			return FText::FromString("Please choose a SoundBank Defintion file path first");
+			return FText::FromString("Please choose a SoundBank Definition file path first");
 		}
 	}
 	return  FText::FromString("Continue");
@@ -304,7 +304,7 @@ EVisibility SMigrationWidget::GetProjectMigrationWidgetVisibility() const
 
 void SBankTransferWidget::Construct(const FArguments& InArgs)
 {
-	SoundBankDefinitionFilePath = AkUnrealHelper::GetProjectDirectory() + "SoundBankDefinition.tsv";
+	SoundBankDefinitionFilePath = WwiseUnrealHelper::GetProjectDirectory() + "SoundBankDefinition.tsv";
 
 	ChildSlot
 	[
@@ -772,7 +772,7 @@ void SProjectMigrationWidget::Construct(const FArguments& InArgs)
 						.AutoHeight()
 						[
 							SAssignNew(GeneratedSoundBanksFolderPickerWidget, SDirectoryPicker)
-							.Directory(AkUnrealHelper::GetSoundBankDirectory())
+							.Directory(WwiseUnrealHelper::GetSoundBankDirectory())
 							.Visibility(this, &SProjectMigrationWidget::GetPathVisibility)
 						]
 					]
@@ -899,7 +899,7 @@ void SDefinitionFilePicker::Construct( const FArguments& InArgs )
 			SAssignNew(EditableTextBox, SEditableTextBox)
 			.Text(this, &SDefinitionFilePicker::GetFilePathText)
 			.OnTextChanged(this, &SDefinitionFilePicker::OnFileTextChanged)
-			.OnTextCommitted(this, &SDefinitionFilePicker::OnFileTextCommited)
+			.OnTextCommitted(this, &SDefinitionFilePicker::OnFileTextCommitted)
 		]
 
 		+ SHorizontalBox::Slot()
@@ -924,7 +924,7 @@ void SDefinitionFilePicker::OnFileTextChanged(const FText& InFilePath)
 	FilePath = InFilePath.ToString();
 }
 
-void SDefinitionFilePicker::OnFileTextCommited(const FText& InText, ETextCommit::Type InCommitType)
+void SDefinitionFilePicker::OnFileTextCommitted(const FText& InText, ETextCommit::Type InCommitType)
 {
 	FilePath = InText.ToString();
 	OnFileChanged.ExecuteIfBound(FilePath);

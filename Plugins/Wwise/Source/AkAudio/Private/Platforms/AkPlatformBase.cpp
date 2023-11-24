@@ -19,7 +19,7 @@ Copyright (c) 2023 Audiokinetic Inc.
 #include "AkAudioDevice.h"
 #include "Interfaces/IPluginManager.h"
 #include "Misc/Paths.h"
-#include "AkUnrealHelper.h"
+#include "WwiseUnrealHelper.h"
 
 FString FAkPlatformBase::GetWwisePluginDirectory()
 {
@@ -28,15 +28,15 @@ FString FAkPlatformBase::GetWwisePluginDirectory()
 
 FString FAkPlatformBase::GetDSPPluginsDirectory(const FString& PlatformArchitecture)
 {
-#ifdef AK_CONFIGURATION
-	auto* Configuration = AK_CONFIGURATION;
+#ifdef WWISE_DSP_DIR
+	static constexpr const auto* DspDir = TEXT(WWISE_DSP_DIR);
 #elif UE_BUILD_SHIPPING
-	auto* Configuration = "Release";
+	static constexpr const auto* DspDir = TEXT("Release");
 #elif UE_BUILD_DEBUG
-	auto* Configuration = "Debug";
+	static constexpr const auto* DspDir = TEXT("Debug");
 #else
-	auto* Configuration = "Profile";
+	static constexpr const auto* DspDir = TEXT("Profile");
 #endif
 
-	return AkUnrealHelper::GetThirdPartyDirectory() / PlatformArchitecture / Configuration / "bin" / "";
+	return WwiseUnrealHelper::GetThirdPartyDirectory() / PlatformArchitecture / DspDir / "bin" / "";
 }

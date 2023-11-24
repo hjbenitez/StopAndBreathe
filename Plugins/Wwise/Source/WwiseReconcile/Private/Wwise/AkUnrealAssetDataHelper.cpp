@@ -17,8 +17,6 @@ Copyright (c) 2023 Audiokinetic Inc.
 
 #include "AkUnrealAssetDataHelper.h"
 #include "Wwise/WwiseReconcile.h"
-#include "AssetRegistry/AssetData.h"
-
 #include "AkAudioEvent.h"
 #include "AkAuxBus.h"
 #include "AkEffectShareSet.h"

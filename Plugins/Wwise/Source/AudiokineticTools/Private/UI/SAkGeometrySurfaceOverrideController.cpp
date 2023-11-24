@@ -26,7 +26,7 @@ Copyright (c) 2023 Audiokinetic Inc.
 #include "Widgets/Layout/SBox.h"
 
 #include "AkGeometryComponent.h"
-#include "AkUEFeatures.h"
+#include "WwiseUEFeatures.h"
 
 namespace AkGeometryUI
 {

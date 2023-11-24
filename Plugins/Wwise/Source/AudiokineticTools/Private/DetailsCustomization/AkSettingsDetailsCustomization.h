@@ -30,6 +30,5 @@ public:
 	virtual void CustomizeDetails(IDetailLayoutBuilder& DetailLayout) override;
 	// End of IDetailCustomization interface
 
-	FReply ClearAkSettingsRoomDecayAuxBusMap();
-	FReply InsertKeyModal();
+	FReply VerifyAndUpdateGeometrySurfacePropertiesTable();
 };

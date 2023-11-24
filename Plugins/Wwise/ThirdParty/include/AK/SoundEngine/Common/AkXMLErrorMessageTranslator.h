@@ -131,6 +131,5 @@ private:
 	{
 		"<StreamedFiles>",
 		"<SoundBanks>"
-		// When adding tags, make sure they are all shorter than MAX_XML_SEARCH_LEN.
 	};
 };

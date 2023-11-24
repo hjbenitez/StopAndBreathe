@@ -19,7 +19,7 @@ Copyright (c) 2023 Audiokinetic Inc.
 
 #include "Wwise/WwiseExecutionQueue.h"
 
-#include "WwiseDefines.h"
+#include "WwiseUnrealDefines.h"
 
 namespace AK
 {
@@ -50,7 +50,9 @@ struct WWISECONCURRENCY_API FWwiseDeferredQueue
 #endif
 	DECLARE_MULTICAST_DELEGATE(FGameThreadDelegate);
 
-	FWwiseDeferredQueue();
+#define WWISE_DQ_NAME(name) TEXT(name ## " Deferred Queue worker") 
+
+	FWwiseDeferredQueue(const TCHAR* InDebugName);
 	~FWwiseDeferredQueue();
 
 	/**

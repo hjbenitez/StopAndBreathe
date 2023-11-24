@@ -71,7 +71,7 @@ public:
 	UPROPERTY()
 	float Priority_DEPRECATED = .0f;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "LateReverb", meta = (ShowOnlyInnerProperties))
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "ReverbVolume", meta = (ShowOnlyInnerProperties))
 	UAkLateReverbComponent* LateReverbComponent = nullptr;
 
 	virtual void PostLoad() override;

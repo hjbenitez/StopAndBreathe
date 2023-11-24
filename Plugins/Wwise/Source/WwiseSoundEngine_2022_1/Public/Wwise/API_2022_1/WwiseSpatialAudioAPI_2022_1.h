@@ -27,7 +27,7 @@ public:
 
 	////////////////////////////////////////////////////////////////////////
 	/// @name Basic functions. 
-	/// In order to use SpatialAudio, you need to initalize it using Init, and register the listeners that you plan on using with any of the services offered by SpatialAudio, using 
+	/// In order to use SpatialAudio, you need to initialize it using Init, and register the listeners that you plan on using with any of the services offered by SpatialAudio, using 
 	/// RegisterListener respectively, _after_ having registered their corresponding game object to the sound engine.
 	/// \akwarning At the moment, there can be only one Spatial Audio listener registered at any given time.
 	//@{
@@ -239,6 +239,49 @@ public:
 		AkPortalID in_PortalID		///< ID of portal to be removed, which was originally passed to SetPortal.
 		) override;
 
+	/// Use a Room as a Reverb Zone.
+	/// AK::SpatialAudio::SetReverbZone establishes a parent-child relationship between two Rooms and allows for sound propagation between them
+	/// as if they were the same Room, without the need for a connecting Portal. Setting a Room as a Reverb Zone
+	/// is useful in situations where two or more acoustic environments are not easily modeled as closed rooms connected by portals.
+	/// Possible uses for Reverb Zones include: a covered area with no walls, a forested area within an outdoor space, or any situation
+	/// where multiple reverb effects are desired within a common space. Reverb Zones have many advantages compared to standard Game-Defined
+	/// Auxiliary Sends. They are part of the wet path, and form reverb chains with other Rooms; they are spatialized according to their 3D extent;
+	/// they are also subject to other acoustic phenomena simulated in Wwise Spatial Audio, such as diffraction and transmission.
+	/// A parent Room may have multiple Reverb Zones, but a Reverb Zone can only have a single Parent. If a Room is already assigned
+	/// to a parent Room, it will first be removed from the old parent (exactly as if AK::SpatialAudio::RemoveReverbZone were called)
+	/// before then being assigned to the new parent Room. A Room can not be its own parent.
+	/// The Reverb Zone and its parent are both Rooms, and as such, must be specified using AK::SpatialAudio::SetRoom.
+	/// If AK::SpatialAudio::SetReverbZone is called before AK::SpatialAudio::SetRoom, and either of the two rooms do not yet exist,
+	/// placeholder Rooms with default parameters are created. They should be subsequently parametrized with AK::SpatialAudio::SetRoom.
+	/// \aknote
+	/// To set which Reverb Zone a Game Object is in, use the AK::SpatialAudio::SetGameObjectInRoom API, and pass the Reverb Zone's Room ID.
+	/// In Wwise Spatial Audio, a Game Object can only ever be inside a single room, and Reverb Zones are no different in this regard.
+	/// \aknote
+	/// The automatically created 'outdoors' Room is commonly used as a parent Room for Reverb Zones, since they often model open spaces.
+	/// To attach a Reverb zone to outdoors, pass AK::SpatialAudio::kOutdoorRoomID as the \c in_ParentRoom argument. Like all Rooms, the 'outdoors' Room
+	/// can be parameterized (for example, to assign a reverb bus) by passing AK::SpatialAudio::kOutdoorRoomID to AK::SpatialAudio::SetRoom.
+	/// \sa
+	/// - \ref AkRoomID
+	///	- \ref AK::SpatialAudio::SetRoom
+	///	- \ref AK::SpatialAudio::RemoveRoom
+	///	- \ref AK::SpatialAudio::RemoveReverbZone
+	/// - \ref AK::SpatialAudio::kOutdoorRoomID
+	AKRESULT SetReverbZone(
+		AkRoomID in_ReverbZone,			///< ID of the Room which will be specified as a Reverb Zone.
+		AkRoomID in_ParentRoom,			///< ID of the parent Room.
+		AkReal32 in_transitionRegionWidth	///< Width of the transition region between the Reverb Zone and its parent. The transition region is centered around the Reverb Zone geometry. It only applies where triangle transmission loss is set to 0.
+	) override;
+
+	/// Remove a Reverb Zone from its parent. 
+	/// It will no longer be possible for sound to propagate between the two rooms, unless they are explicitly connected with a Portal.
+	/// \sa
+	///	- \ref AK::SpatialAudio::SetReverbZone
+	///	- \ref AK::SpatialAudio::RemoveRoom
+	///	- \ref AK::SpatialAudio::RemoveReverbZone
+	AKRESULT RemoveReverbZone(
+		AkRoomID in_ReverbZone	///< ID of the Room which has been specified as a Reverb Zone.
+	) override;
+
 	/// Set the room that the game object is currently located in - usually the result of a containment test performed by the client. The room must have been registered with \c SetRoom.
 	///	Setting the room for a game object provides the basis for the sound propagation service, and also sets which room's reverb aux bus to send to.  The sound propagation service traces the path
 	/// of the sound from the emitter to the listener, and calculates the diffraction as the sound passes through each portal.  The portals are used to define the spatial location of the diffracted and reverberated
@@ -250,6 +293,15 @@ public:
 		AkGameObjectID in_gameObjectID, ///< Game object ID 
 		AkRoomID in_CurrentRoomID		///< RoomID that was passed to \c AK::SpatialAudio::SetRoom
 		) override;
+
+	/// Unset the room that the game object is currently located in.
+	///	When a game object has not been explicitly assigned to a room with \ref AK::SpatialAudio::SetGameObjectInRoom, the room is automatically computed.
+	/// \sa 
+	///	- \ref AK::SpatialAudio::SetRoom
+	///	- \ref AK::SpatialAudio::RemoveRoom
+	AKRESULT UnsetGameObjectInRoom(
+		AkGameObjectID in_gameObjectID ///< Game object ID
+	) override;
 
 	/// Set the early reflections order for reflection calculation. The reflections order indicates the number of times sound can bounce off of a surface. 
 	/// A higher number requires more CPU resources but results in denser early reflections. Set to 0 to globally disable reflections processing.
@@ -265,6 +317,14 @@ public:
 	AKRESULT SetDiffractionOrder(
 		AkUInt32 in_uDiffractionOrder,	///< Number of diffraction edges to consider in path calculations. Valid range [0,8]
 		bool in_bUpdatePaths			///< Set to true to clear existing diffraction paths and to force the re-computation of new paths. If false, existing paths will remain and new paths will be computed when the emitter or listener moves.
+		) override;
+
+	/// Set the maximum number of game-defined auxiliary sends that can originate from a single emitter. 
+	/// Set to 1 to only allow emitters to send directly to their current room. Set to 0 to disable the limit.
+	/// \sa
+	/// - \ref AkSpatialAudioInitSettings::uMaxEmitterRoomAuxSends
+	AKRESULT SetMaxEmitterRoomAuxSends(
+		AkUInt32 in_uMaxEmitterRoomAuxSends		///< The maximum number of room aux send connections.
 		) override;
 
 	/// Set the number of rays cast from the listener by the stochastic ray casting engine.
@@ -415,12 +475,11 @@ public:
 		/// The high frequency damping is a measure of how much high frequencies are dampened compared to low frequencies. > 0 indicates more high frequency damping than low frequency damping. < 0 indicates more low frequency damping than high frequency damping. 0 indicates uniform damping.
 		/// The average absorption values are calculated using each of the textures in the collection, weighted by their corresponding surface area.
 		/// The HFDamping is then calculated as the line-of-best-fit through the average absorption values.
-		AKRESULT EstimateHFDamping(
+		AkReal32 EstimateHFDamping(
 			AkAcousticTexture* in_textures,	///< A collection of AkAcousticTexture structs from which to calculate the average high frequency damping.
 			float* in_surfaceAreas,			///< Surface area values for each of the textures in in_textures.
-			int in_numTextures,				///< The number of textures in in_textures (and the number of surface area values in in_surfaceAreas).
-			AkReal32& out_hfDamping			///< Returns the high frequency damping value. > 0 indicates more high frequency damping than low frequency damping. < 0 indicates more low frequency damping than high frequency damping. 0 indicates uniform damping.
-			) override;
+			int in_numTextures				///< The number of textures in in_textures (and the number of surface area values in in_surfaceAreas).
+		) override;
 
 		//@}
 	};

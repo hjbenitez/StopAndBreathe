@@ -20,6 +20,7 @@ Copyright (c) 2023 Audiokinetic Inc.
 #include "Wwise/Stats/FileHandler.h"
 
 #include "WwiseDefines.h"
+#include "WwiseUnrealDefines.h"
 
 #include "Misc/Paths.h"
 #include "Async/MappedFileHandle.h"

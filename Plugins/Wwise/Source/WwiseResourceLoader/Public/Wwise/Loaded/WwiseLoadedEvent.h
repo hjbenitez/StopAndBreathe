@@ -37,6 +37,7 @@ struct WWISERESOURCELOADER_API FWwiseLoadedEventInfo
 		TArray<const FWwiseSoundBankCookedData*> LoadedSoundBanks;
 		TArray<const FWwiseExternalSourceCookedData*> LoadedExternalSources;
 		TArray<const FWwiseMediaCookedData*> LoadedMedia;
+		int IsProcessing{0};
 
 		FWwiseLoadedGroupValueList LoadedRequiredGroupValues;
 		bool bLoadedSwitchContainerLeaves = false;
@@ -53,6 +54,7 @@ private:
 
 using FWwiseLoadedEventList = TDoubleLinkedList<FWwiseLoadedEventInfo>;
 using FWwiseLoadedEventListNode = FWwiseLoadedEventList::TDoubleLinkedListNode;
-using FWwiseLoadedEvent = FWwiseLoadedEventListNode*;
-using FWwiseLoadedEventPromise = TWwisePromise<FWwiseLoadedEvent>;
-using FWwiseLoadedEventFuture = TWwiseFuture<FWwiseLoadedEvent>;
+using FWwiseLoadedEventPtr = FWwiseLoadedEventListNode*;
+using FWwiseLoadedEventPtrAtomic = std::atomic<FWwiseLoadedEventPtr>;
+using FWwiseLoadedEventPromise = TWwisePromise<FWwiseLoadedEventPtr>;
+using FWwiseLoadedEventFuture = TWwiseFuture<FWwiseLoadedEventPtr>;

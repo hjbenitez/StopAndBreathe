@@ -31,7 +31,7 @@ Copyright (c) 2023 Audiokinetic Inc.
 #include "Model.h"
 #include "EngineUtils.h"
 #include "AkAudioEvent.h"
-#include "AkSettings.h"
+#include "AkSettingsPerUser.h"
 #include "Wwise/API/WwiseSpatialAudioAPI.h"
 #if WITH_EDITOR
 #include "AkDrawRoomComponent.h"
@@ -58,13 +58,31 @@ UAkRoomComponent::UAkRoomComponent(const class FObjectInitializer& ObjectInitial
 	PrimaryComponentTick.bCanEverTick = true;
 	PrimaryComponentTick.bStartWithTickEnabled = true;
 	bTickInEditor = true;
+
 #if WITH_EDITOR
 	if (AkSpatialAudioHelper::GetObjectReplacedEvent())
 	{
 		AkSpatialAudioHelper::GetObjectReplacedEvent()->AddUObject(this, &UAkRoomComponent::HandleObjectsReplaced);
 	}
-	bWantsOnUpdateTransform = true;
 	bWantsInitializeComponent = true;
+	bWantsOnUpdateTransform = true;
+#else
+	bWantsOnUpdateTransform = false;
+#endif
+}
+
+void UAkRoomComponent::SetDynamic(bool bInDynamic)
+{
+	bDynamic = bInDynamic;
+#if WITH_EDITOR
+	bWantsOnUpdateTransform = true;
+
+	// If we're PIE, or somehow otherwise in a game world in editor, simulate the bDynamic behaviour.
+	UWorld* world = GetWorld();
+	if (world != nullptr && (world->WorldType == EWorldType::Type::Game || world->WorldType == EWorldType::Type::PIE))
+	{
+		bWantsOnUpdateTransform = bDynamic;
+	}
 #else
 	bWantsOnUpdateTransform = bDynamic;
 #endif
@@ -91,6 +109,20 @@ bool UAkRoomComponent::RoomIsActive() const
 void UAkRoomComponent::OnRegister()
 {
 	Super::OnRegister();
+
+#if WITH_EDITOR
+	bWantsOnUpdateTransform = true;
+
+	// If we're PIE, or somehow otherwise in a game world in editor, simulate the bDynamic behaviour.
+	UWorld* world = GetWorld();
+	if (world != nullptr && (world->WorldType == EWorldType::Type::Game || world->WorldType == EWorldType::Type::PIE))
+	{
+		bWantsOnUpdateTransform = bDynamic;
+	}
+#else
+	bWantsOnUpdateTransform = bDynamic;
+#endif
+
 	SetRelativeTransform(FTransform::Identity);
 	InitializeParent();
 	// We want to add / update the room both in BeginPlay and OnRegister. BeginPlay for aux bus and reverb level assignment, OnRegister for portal room assignment and visualization
@@ -100,7 +132,7 @@ void UAkRoomComponent::OnRegister()
 		UpdateSpatialAudioRoom();
 
 #if WITH_EDITOR
-	if (GetDefault<UAkSettings>()->VisualizeRoomsAndPortals)
+	if (GetDefault<UAkSettingsPerUser>()->VisualizeRoomsAndPortals)
 	{
 		InitializeDrawComponent();
 	}
@@ -135,9 +167,10 @@ void UAkRoomComponent::PostLoad()
 
 void UAkRoomComponent::OnComponentDestroyed(bool bDestroyingHierarchy)
 {
-	UAkSettings* AkSettings = GetMutableDefault<UAkSettings>();
-	AkSettings->OnShowRoomsPortalsChanged.Remove(ShowRoomsChangedHandle);
+	UAkSettingsPerUser* AkSettingsPerUser = GetMutableDefault<UAkSettingsPerUser>();
+	AkSettingsPerUser->OnShowRoomsPortalsChanged.Remove(ShowRoomsChangedHandle);
 	ShowRoomsChangedHandle.Reset();
+	ConnectedPortals.Empty();
 	DestroyDrawComponent();
 }
 #endif // WITH_EDITOR
@@ -232,10 +265,10 @@ void UAkRoomComponent::RegisterVisEnabledCallback()
 {
 	if (!ShowRoomsChangedHandle.IsValid())
 	{
-		UAkSettings* AkSettings = GetMutableDefault<UAkSettings>();
-		ShowRoomsChangedHandle = AkSettings->OnShowRoomsPortalsChanged.AddLambda([this, AkSettings]()
+		UAkSettingsPerUser* AkSettingsPerUser = GetMutableDefault<UAkSettingsPerUser>();
+		ShowRoomsChangedHandle = AkSettingsPerUser->OnShowRoomsPortalsChanged.AddLambda([this, AkSettingsPerUser]()
 		{
-			if (AkSettings->VisualizeRoomsAndPortals)
+			if (AkSettingsPerUser->VisualizeRoomsAndPortals)
 			{
 				InitializeDrawComponent();
 			}
@@ -372,7 +405,7 @@ void UAkRoomComponent::GetRoomParams(AkRoomParams& outParams)
 		outParams.GeometryInstanceID = GeometryComponent->GetGeometrySetID();
 	
 	outParams.RoomGameObj_AuxSendLevelToSelf = AuxSendLevel;
-	outParams.RoomGameObj_KeepRegistered = AkAudioEvent == NULL && EventName.IsEmpty() ? false : true;
+	outParams.RoomGameObj_KeepRegistered = AkAudioEvent == NULL ? false : true;
 	const UAkSettings* AkSettings = GetDefault<UAkSettings>();
 	if (AkSettings != nullptr && AkSettings->ReverbRTPCsInUse())
 		outParams.RoomGameObj_KeepRegistered = true;
@@ -381,6 +414,45 @@ void UAkRoomComponent::GetRoomParams(AkRoomParams& outParams)
 UPrimitiveComponent* UAkRoomComponent::GetPrimitiveParent() const
 {
 	return Parent;
+}
+
+void UAkRoomComponent::SetReverbZone(const UAkRoomComponent* InParentRoom, float InTransitionRegionWidth)
+{
+	if (GeometryComponent == nullptr)
+	{
+		UE_LOG(LogAkAudio, Error, TEXT("UAkRoomComponent::SetReverbZone: Reverb Zone Room component %s doesn't have an associated geometry."), *GetRoomName());
+		return;
+	}
+
+	// If InParentRoom is null, assign the outdoor room as the parent room.
+	ParentRoomID = AK::SpatialAudio::kOutdoorRoomID;
+	if (InParentRoom != nullptr)
+	{
+		ParentRoomID = InParentRoom->GetRoomID();
+	}
+
+	if (InTransitionRegionWidth < 0.f)
+	{
+		UE_LOG(LogAkAudio, Warning, TEXT("UAkGameplayStatics::SetReverbZone: Transition region width for Reverb Zone %s is a negative number. It has been clamped to 0."), *GetRoomName());
+		InTransitionRegionWidth = 0.f;
+	}
+
+	auto* SpatialAudio = IWwiseSpatialAudioAPI::Get();
+	if (LIKELY(SpatialAudio))
+	{
+		SpatialAudio->SetReverbZone(GetRoomID(), ParentRoomID, InTransitionRegionWidth);
+		bIsAReverbZoneInWwise = true;
+	}
+}
+
+void UAkRoomComponent::RemoveReverbZone()
+{
+	auto* SpatialAudio = IWwiseSpatialAudioAPI::Get();
+	if (LIKELY(SpatialAudio))
+	{
+		SpatialAudio->RemoveReverbZone(GetRoomID());
+		bIsAReverbZoneInWwise = false;
+	}
 }
 
 void UAkRoomComponent::AddSpatialAudioRoom()
@@ -447,12 +519,13 @@ void UAkRoomComponent::RemoveSpatialAudioRoom()
 
 int32 UAkRoomComponent::PostAssociatedAkEvent(int32 CallbackMask, const FOnAkPostEventCallback& PostEventCallback)
 {
-	AkPlayingID playingID = AK_INVALID_PLAYING_ID;
+	if (LIKELY(IsValid(AkAudioEvent)))
+	{
+		return PostAkEvent(AkAudioEvent, CallbackMask, PostEventCallback);
+	}
 
-	if (!HasActiveEvents())
-		playingID = PostAkEvent(AkAudioEvent, CallbackMask, PostEventCallback, EventName);
-
-	return playingID;
+	UE_LOG(LogAkAudio, Error, TEXT("Failed to post invalid AkAudioEvent on Room component '%s'"), *GetRoomName());
+	return AK_INVALID_PLAYING_ID;
 }
 
 AkPlayingID UAkRoomComponent::PostAkEventByNameWithDelegate(
@@ -466,7 +539,7 @@ AkPlayingID UAkRoomComponent::PostAkEventByNameWithDelegate(
 	if (AudioDevice)
 	{
 		const AkUInt32 ShortID = AudioDevice->GetShortID(AkEvent, in_EventName);
-		PlayingID = AudioDevice->PostEventOnAkGameObject(ShortID, this, PostEventCallback, CallbackMask);
+		PlayingID = AkEvent->PostOnGameObject(this, PostEventCallback, CallbackMask);
 	}
 
 	return PlayingID;
@@ -477,11 +550,6 @@ void UAkRoomComponent::BeginPlay()
 	Super::BeginPlay();
 
 #if WITH_EDITOR
-	// If we're PIE, or somehow otherwise in a game world in editor, simulate the bDynamic behaviour.
-	if (AkComponentHelpers::IsInGameWorld(this))
-	{
-		bWantsOnUpdateTransform = bDynamic;
-	}
 	if (AkComponentHelpers::ShouldDeferBeginPlay(this))
 		bRequiresDeferredBeginPlay = true;
 	else
@@ -523,14 +591,13 @@ void UAkRoomComponent::BeginPlayInternal()
 
 	if (AutoPost)
 	{
-		if (!HasActiveEvents())
-			PostAssociatedAkEvent(0, FOnAkPostEventCallback());
+		PostAssociatedAkEvent(0, FOnAkPostEventCallback());
 	}
 }
 
 void UAkRoomComponent::EndPlay(EEndPlayReason::Type EndPlayReason)
 {
-	if (bEventPosted)
+	if (HasActiveEvents())
 	{
 		Stop();
 	}
@@ -560,6 +627,14 @@ void UAkRoomComponent::PostEditChangeProperty(FPropertyChangedEvent& PropertyCha
 	//Call add again to update the room parameters, if it has already been added.
 	if (IsRegisteredWithWwise)
 		UpdateSpatialAudioRoom();
+}
+
+void UAkRoomComponent::OnParentNameChanged()
+{
+	for (auto& Portal : ConnectedPortals)
+	{
+		Portal.Value->UpdateRoomNames();
+	}
 }
 #endif
 
@@ -624,4 +699,14 @@ UAkLateReverbComponent* UAkRoomComponent::GetReverbComponent()
 		pRvbComp = AkComponentHelpers::GetChildComponentOfType<UAkLateReverbComponent>(*Parent);
 	}
 	return pRvbComp;
+}
+
+void UAkRoomComponent::AddPortalConnection(UAkPortalComponent* in_pPortal)
+{
+	ConnectedPortals.Add(in_pPortal->GetPortalID(), in_pPortal);
+}
+
+void UAkRoomComponent::RemovePortalConnection(AkPortalID in_portalID)
+{
+	ConnectedPortals.Remove(in_portalID);
 }

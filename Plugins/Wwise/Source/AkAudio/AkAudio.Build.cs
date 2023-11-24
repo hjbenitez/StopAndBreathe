@@ -52,6 +52,9 @@ public class AkAudio : ModuleRules
 #endif
 				"WwiseConcurrency",
 				"WwiseResourceLoader",
+				"WwiseObstructionOcclusion",
+				"WwiseProcessing",
+				"WwiseUtils"
 			}
 		);
 
@@ -77,7 +80,8 @@ public class AkAudio : ModuleRules
 				"XmlParser",
 
 				"WwiseFileHandler",
-				"WwiseSoundEngine"
+				"WwiseSoundEngine",
+				"WwiseUtils"
 			}
 		);
 
@@ -117,6 +121,20 @@ public class AkAudio : ModuleRules
 					"WwiseResourceCooker"
 				}
 			);
+		}
+		
+		if (Target.bCompileAgainstCoreUObject)
+		{
+			PublicDependencyModuleNames.AddRange(new string[] {
+				"WwiseObjectUtils"
+			});
+		}
+		
+		if (Target.bCompileAgainstEngine)
+		{
+			PublicDependencyModuleNames.AddRange(new string[] {
+				"WwiseEngineUtils"
+			});
 		}
 
 		PrivateIncludePaths.Add("AkAudio/Private");

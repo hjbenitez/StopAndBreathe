@@ -117,17 +117,6 @@ bool FAkMixerPlatform::OnNextBuffer(uint32 NumChannels, uint32 NumSamples, float
 			AudioStreamInfo.StreamState == Audio::EAudioOutputStreamState::Running ? TEXT("Running") :
 			AudioStreamInfo.StreamState == Audio::EAudioOutputStreamState::Stopped ? TEXT("Stopped") :
 			AudioStreamInfo.StreamState == Audio::EAudioOutputStreamState::Stopping ? TEXT("Stopping") : TEXT("Unknown"));
-
-		bFailureShown = true;
-		OutputBuffer = nullptr;
-		WriteSilence(NumChannels, NumSamples, OutBufferToFill);
-		ReadNextBuffer();
-		return true;
-	}
-
-	if (UNLIKELY(NumChannels != AudioStreamInfo.DeviceInfo.NumChannels))
-	{
-		UE_LOG(LogAkAudioMixer, Error, TEXT("FAkMixerPlatform::OnNextBuffer: Invalid number of channels: %d requested when %d were used on initialization. Failing permanently."), (int)NumChannels, (int)AudioStreamInfo.DeviceInfo.NumChannels);
 		WriteSilence(NumChannels, NumSamples, OutBufferToFill);
 		return false;
 	}

@@ -25,7 +25,7 @@ Copyright (c) 2023 Audiokinetic Inc.
 #include "AkAudioEvent.h"
 #include "AkCallbackInfoPool.h"
 #include "AkComponent.h"
-#include "AkUnrealHelper.h"
+#include "WwiseUnrealDefines.h"
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "Engine/GameEngine.h"
 #include "EngineUtils.h"

@@ -24,6 +24,20 @@ Copyright (c) 2023 Audiokinetic Inc.
 
 #include "AkTVOSInitializationSettings.generated.h"
 
+USTRUCT()
+struct FAkTVOSAdvancedInitializationSettings : public FAkAdvancedInitializationSettingsWithMultiCoreRendering
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, Category = "Ak Initialization Settings", meta = (ToolTip = "Number of Apple Spatial Audio point sources to allocate for 3D audio use (each point source is a system audio object)."))
+	uint32 uNumSpatialAudioPointSources = 128;
+
+	UPROPERTY(EditAnywhere, Category = "Ak Initialization Settings", meta = (ToolTip = "Print detailed system output information to the system log."))
+	bool bVerboseSystemOutput = false;
+
+	void FillInitializationStructure(FAkInitializationStructure& InitializationStructure) const;
+};
+
 UCLASS(config = Game, defaultconfig)
 class AKAUDIO_API UAkTVOSInitializationSettings : public UObject, public IAkPlatformInitialisationSettingsBase
 {
@@ -48,5 +62,5 @@ public:
 	FAkCommunicationSettingsWithSystemInitialization CommunicationSettings;
 
 	UPROPERTY(Config, EditAnywhere, Category = "Initialization", AdvancedDisplay)
-	FAkAdvancedInitializationSettingsWithMultiCoreRendering AdvancedSettings;
+	FAkTVOSAdvancedInitializationSettings AdvancedSettings;
 };

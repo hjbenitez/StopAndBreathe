@@ -54,7 +54,7 @@ public:
 		UI_COMMAND(RequestStopAllWwiseItem, "Stop All", "Stop all playing events", EUserInterfaceActionType::Button, FInputChord());
 		UI_COMMAND(RequestDeleteWwiseItem, "Delete", "Deletes the selected item(s).", EUserInterfaceActionType::Button, FInputChord(EKeys::Delete));
 		UI_COMMAND(RequestExploreWwiseItem, "Show in Folder", "Finds this item on disk.", EUserInterfaceActionType::Button, FInputChord());
-		UI_COMMAND(RequestFindInProjectExplorerWwisetem, "Find in the Project Explorer", "Finds the specified object in the Project Explorer (Sync Group 1).", EUserInterfaceActionType::Button, FInputChord(EModifierKey::Control | EModifierKey::Shift, EKeys::One));
+		UI_COMMAND(RequestFindInProjectExplorerWwiseItem, "Find in the Project Explorer", "Finds the specified object in the Project Explorer (Sync Group 1).", EUserInterfaceActionType::Button, FInputChord(EModifierKey::Control | EModifierKey::Shift, EKeys::One));
 		UI_COMMAND(RequestRefreshWaapiPicker, "Refresh All", "Populates the Waapi Picker.", EUserInterfaceActionType::Button, FInputChord(EKeys::F5));
 		UI_COMMAND(RequestImportWwiseItem, "Import Selected Assets", "Imports the selected assets from the Waapi Picker.", EUserInterfaceActionType::Button, FInputChord());
 	}
@@ -77,7 +77,7 @@ public:
 	TSharedPtr< FUICommandInfo > RequestExploreWwiseItem;
 	
 	/** Requests a Find in the Project Explorer action on the Item */
-	TSharedPtr< FUICommandInfo > RequestFindInProjectExplorerWwisetem;
+	TSharedPtr< FUICommandInfo > RequestFindInProjectExplorerWwiseItem;
 	
 	/** Requests a refresh on the Waapi Picker */
 	TSharedPtr< FUICommandInfo > RequestRefreshWaapiPicker;

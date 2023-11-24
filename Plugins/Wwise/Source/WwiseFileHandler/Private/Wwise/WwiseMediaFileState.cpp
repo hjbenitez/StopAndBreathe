@@ -18,12 +18,16 @@ Copyright (c) 2023 Audiokinetic Inc.
 #include "Wwise/WwiseMediaFileState.h"
 #include "Wwise/WwiseMediaManager.h"
 #include "Wwise/WwiseStreamingManagerHooks.h"
+#include "Wwise/WwiseTask.h"
 #include "Wwise/API/WwiseSoundEngineAPI.h"
 #include "Wwise/Stats/FileHandlerMemory.h"
-#include "AkUnrealHelper.h"
+
+#include "WwiseUnrealHelper.h"
 #include "Async/MappedFileHandle.h"
 
 #include <inttypes.h>
+
+#include "Wwise/WwiseSoundEngineUtils.h"
 
 FWwiseMediaFileState::FWwiseMediaFileState(const FWwiseMediaCookedData& InCookedData, const FString& InRootPath) :
 	FWwiseMediaCookedData(InCookedData),
@@ -99,7 +103,7 @@ void FWwiseInMemoryMediaFileState::LoadInSoundEngine(FLoadInSoundEngineCallback&
 	}
 	else
 	{
-		UE_LOG(LogWwiseFileHandler, Error, TEXT("FWwiseInMemoryMediaFileState::LoadInSoundEngine %" PRIu32 " (%s): Failed to load Media: %d (%s)."), MediaId, *DebugName.ToString(), SetMediaResult, AkUnrealHelper::GetResultString(SetMediaResult));
+		UE_LOG(LogWwiseFileHandler, Error, TEXT("FWwiseInMemoryMediaFileState::LoadInSoundEngine %" PRIu32 " (%s): Failed to load Media: %d (%s)."), MediaId, *DebugName.ToString(), SetMediaResult, WwiseUnrealHelper::GetResultString(SetMediaResult));
 		return LoadInSoundEngineFailed(MoveTemp(InCallback));
 	}
 }
@@ -122,7 +126,7 @@ void FWwiseInMemoryMediaFileState::UnloadFromSoundEngine(FUnloadFromSoundEngineC
 	}
 	else
 	{
-		UE_CLOG(UNLIKELY(Result != AK_Success), LogWwiseFileHandler, Error, TEXT("FWwiseInMemoryMediaFileState::UnloadFromSoundEngine %" PRIu32 " (%s): TryUnsetMedia failed: %d (%s)"), MediaId, *DebugName.ToString(), Result, AkUnrealHelper::GetResultString(Result));
+		UE_CLOG(UNLIKELY(Result != AK_Success), LogWwiseFileHandler, Error, TEXT("FWwiseInMemoryMediaFileState::UnloadFromSoundEngine %" PRIu32 " (%s): TryUnsetMedia failed: %d (%s)"), MediaId, *DebugName.ToString(), Result, WwiseUnrealHelper::GetResultString(Result));
 		UE_CLOG(LIKELY(Result == AK_Success), LogWwiseFileHandler, VeryVerbose, TEXT("FWwiseInMemoryMediaFileState::UnloadFromSoundEngine %" PRIu32 " (%s)"), MediaId, *DebugName.ToString());
 		DEC_DWORD_STAT(STAT_WwiseFileHandlerLoadedMedia);
 		return UnloadFromSoundEngineDone(MoveTemp(InCallback));
@@ -210,7 +214,7 @@ void FWwiseStreamedMediaFileState::OpenFile(FOpenFileCallback&& InCallback)
 	}
 	else
 	{
-		UE_LOG(LogWwiseFileHandler, Error, TEXT("FWwiseStreamedMediaFileState::OpenFile %" PRIu32 " (%s): Failed to prefetch media: %d (%s)."), MediaId, *DebugName.ToString(), SetMediaResult, AkUnrealHelper::GetResultString(SetMediaResult));
+		UE_LOG(LogWwiseFileHandler, Error, TEXT("FWwiseStreamedMediaFileState::OpenFile %" PRIu32 " (%s): Failed to prefetch media: %d (%s)."), MediaId, *DebugName.ToString(), SetMediaResult, WwiseUnrealHelper::GetResultString(SetMediaResult));
 		DeallocateMemory(pMediaMemory, uMediaSize, bDeviceMemory, MemoryAlignment, true, STAT_WwiseMemoryMediaPrefetch_FName, STAT_WwiseMemoryMediaPrefetchDevice_FName);
 		pMediaMemory = nullptr;
 		uMediaSize = 0;
@@ -242,7 +246,7 @@ void FWwiseStreamedMediaFileState::LoadInSoundEngine(FLoadInSoundEngineCallback&
 		if (UNLIKELY(!bResult))
 		{
 			UE_LOG(LogWwiseFileHandler, Error, TEXT("FWwiseStreamedMediaFileState::LoadInSoundEngine %" PRIu32 ": Failed to load Streaming Media (%s)."), MediaId, *DebugName.ToString());
-			FFunctionGraphTask::CreateAndDispatchWhenReady([StreamedFile=StreamedFile]
+			LaunchWwiseTask(WWISEFILEHANDLER_ASYNC_NAME("FWwiseStreamedMediaFileState::LoadInSoundEngine delete"), [StreamedFile=StreamedFile]
 			{
 				delete StreamedFile;
 			});
@@ -305,7 +309,7 @@ void FWwiseStreamedMediaFileState::CloseFile(FCloseFileCallback&& InCallback)
 		}
 		else
 		{
-			UE_LOG(LogWwiseFileHandler, Error, TEXT("FWwiseStreamedMediaFileState::CloseFile %" PRIu32 " (%s): TryUnsetMedia of prefetch failed: %d (%s). Leaking."), MediaId, *DebugName.ToString(), Result, AkUnrealHelper::GetResultString(Result));
+			UE_LOG(LogWwiseFileHandler, Error, TEXT("FWwiseStreamedMediaFileState::CloseFile %" PRIu32 " (%s): TryUnsetMedia of prefetch failed: %d (%s). Leaking."), MediaId, *DebugName.ToString(), Result, WwiseUnrealHelper::GetResultString(Result));
 		}
 		pMediaMemory = nullptr;
 		uMediaSize = 0;

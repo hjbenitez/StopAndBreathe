@@ -66,7 +66,7 @@ public:
 	 */
 	void Construct( const AkSSlider::FArguments& InDeclaration );
 
-	TSharedPtr<SSlider> GetAkSilder() const;
+	TSharedPtr<SSlider> GetAkSlider() const;
 
 	/**
 	* Getter to access the current value of the slider

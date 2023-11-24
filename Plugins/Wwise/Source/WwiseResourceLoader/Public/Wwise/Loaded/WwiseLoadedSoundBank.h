@@ -36,6 +36,7 @@ struct WWISERESOURCELOADER_API FWwiseLoadedSoundBankInfo
 		FLoadedData& operator=(const FLoadedData&) = delete;
 
 		bool bLoaded = false;
+		int IsProcessing{0};
 
 		bool IsLoaded() const;
 	} LoadedData;
@@ -49,6 +50,7 @@ private:
 
 using FWwiseLoadedSoundBankList = TDoubleLinkedList<FWwiseLoadedSoundBankInfo>;
 using FWwiseLoadedSoundBankListNode = FWwiseLoadedSoundBankList::TDoubleLinkedListNode;
-using FWwiseLoadedSoundBank = FWwiseLoadedSoundBankListNode*;
-using FWwiseLoadedSoundBankPromise = TWwisePromise<FWwiseLoadedSoundBank>;
-using FWwiseLoadedSoundBankFuture = TWwiseFuture<FWwiseLoadedSoundBank>;
+using FWwiseLoadedSoundBankPtr = FWwiseLoadedSoundBankListNode*;
+using FWwiseLoadedSoundBankPtrAtomic = std::atomic<FWwiseLoadedSoundBankPtr>;
+using FWwiseLoadedSoundBankPromise = TWwisePromise<FWwiseLoadedSoundBankPtr>;
+using FWwiseLoadedSoundBankFuture = TWwiseFuture<FWwiseLoadedSoundBankPtr>;

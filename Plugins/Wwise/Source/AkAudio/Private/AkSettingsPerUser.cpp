@@ -19,7 +19,7 @@ Copyright (c) 2023 Audiokinetic Inc.
 
 #include "AkAudioDevice.h"
 #include "Misc/Paths.h"
-#include "AkUnrealHelper.h"
+#include "WwiseUnrealDefines.h"
 
 #if WITH_EDITOR
 #include "AkUnrealEditorHelper.h"
@@ -32,6 +32,8 @@ UAkSettingsPerUser::UAkSettingsPerUser(const FObjectInitializer& ObjectInitializ
 {
 #if WITH_EDITOR
 	WwiseWindowsInstallationPath.Path = FPlatformMisc::GetEnvironmentVariable(TEXT("WWISEROOT"));
+	VisualizeRoomsAndPortals = false;
+	bShowReverbInfo = true;
 #endif
 }
 
@@ -80,6 +82,14 @@ void UAkSettingsPerUser::PostEditChangeProperty(FPropertyChangedEvent& PropertyC
 		}
 		OnGeneratedSoundBanksPathChanged.Broadcast();
 	}
+	else if (MemberPropertyName == GET_MEMBER_NAME_CHECKED(UAkSettingsPerUser, VisualizeRoomsAndPortals))
+	{
+		OnShowRoomsPortalsChanged.Broadcast();
+	}
+	else if (MemberPropertyName == GET_MEMBER_NAME_CHECKED(UAkSettingsPerUser, bShowReverbInfo))
+	{
+		OnShowReverbInfoChanged.Broadcast();
+	}
 
 	if(RootOutputPathOverride.Path.IsEmpty())
 	{
@@ -87,5 +97,17 @@ void UAkSettingsPerUser::PostEditChangeProperty(FPropertyChangedEvent& PropertyC
 	}
 
 	Super::PostEditChangeProperty(PropertyChangedEvent);
+}
+
+void UAkSettingsPerUser::ToggleVisualizeRoomsAndPortals()
+{
+	VisualizeRoomsAndPortals = !VisualizeRoomsAndPortals;
+	OnShowRoomsPortalsChanged.Broadcast();
+}
+
+void UAkSettingsPerUser::ToggleShowReverbInfo()
+{
+	bShowReverbInfo = !bShowReverbInfo;
+	OnShowReverbInfoChanged.Broadcast();
 }
 #endif

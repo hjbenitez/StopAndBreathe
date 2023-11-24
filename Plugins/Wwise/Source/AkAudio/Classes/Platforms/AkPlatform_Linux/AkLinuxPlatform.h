@@ -37,8 +37,6 @@ struct AKAUDIO_API FAkLinuxPlatform : FAkPlatformBase
 	{
 		return FString("Linux");
 	}
-
-	static FString GetDSPPluginsDirectory(const FString& PlatformArchitecture);
 };
 
 using FAkPlatform = FAkLinuxPlatform;

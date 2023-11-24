@@ -17,7 +17,9 @@ Copyright (c) 2023 Audiokinetic Inc.
 
 #include "Wwise/WwiseFileLocationResolver_2022_1.h"
 #include "Wwise/Stats/SoundEngine.h"
-#include "AkUnrealHelper.h"
+#include "WwiseUnrealHelper.h"
+#include "Wwise/Stats/NamedEvents.h"
+#include "Wwise/WwiseSoundEngineUtils.h"
 
 #include "Misc/ScopeLock.h"
 
@@ -85,7 +87,7 @@ AKRESULT FWwiseFileLocationResolver::Open(AkFileID in_fileID, AkOpenMode in_eOpe
 		io_fileDesc.pCustomParam = Data->pFileDesc;
 		auto Result = Data->Result;
 		delete Data;
-		UE_LOG(LogWwiseSoundEngine, Verbose, TEXT("FWwiseDefaultIOHook::Opened file ID %" PRIu32 ": (%" PRIu32 ") %s"), in_fileID, Result, AkUnrealHelper::GetResultString(Result));
+		UE_LOG(LogWwiseSoundEngine, Verbose, TEXT("FWwiseDefaultIOHook::Opened file ID %" PRIu32 ": (%" PRIu32 ") %s"), in_fileID, Result, WwiseUnrealHelper::GetResultString(Result));
 		return Result;
 	}
 	else
@@ -162,7 +164,7 @@ AKRESULT FWwiseFileLocationResolver::Open(const AkOSChar* in_pszFileName, AkOpen
 		io_fileDesc.pCustomParam = Data->pFileDesc;
 		auto Result = Data->Result;
 		delete Data;
-		UE_LOG(LogWwiseSoundEngine, Verbose, TEXT("FWwiseDefaultIOHook::Opened file %s: (%" PRIu32 ") %s"), *Filename, Result, AkUnrealHelper::GetResultString(Result));
+		UE_LOG(LogWwiseSoundEngine, Verbose, TEXT("FWwiseDefaultIOHook::Opened file %s: (%" PRIu32 ") %s"), *Filename, Result, WwiseUnrealHelper::GetResultString(Result));
 		return Result;
 	}
 	else

@@ -17,7 +17,7 @@ Copyright (c) 2023 Audiokinetic Inc.
 
 #include "Widgets/SWwiseReconcile.h"
 #include "AkAudioStyle.h"
-#include "AkUEFeatures.h"
+#include "WwiseUEFeatures.h"
 #include "ProjectedResultColumn.h"
 #include "ReconcileOperationColumn.h"
 #include "ReconcileUEAssetStatusColumn.h"

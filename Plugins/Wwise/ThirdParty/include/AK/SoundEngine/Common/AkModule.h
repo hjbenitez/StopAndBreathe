@@ -143,7 +143,7 @@ struct AkMemSettings
 	//@{
 	AkMemInitForThread				pfInitForThread;				///< (Optional) Thread-specific allocator initialization hook.
 	AkMemTermForThread				pfTermForThread;				///< (Optional) Thread-specific allocator termination hook.
-	//AkMemTrimForThread				pfTrimForThread;			///< (Optional) Thread-specific allocator "trimming" hook. Used to relinquish memory resources when threads enter a period of inactivity.
+	AkMemTrimForThread				pfTrimForThread;				///< (Optional) Thread-specific allocator "trimming" hook. Used to relinquish memory resources when threads enter a period of inactivity.
 	AkMemMalloc						pfMalloc;						///< (Optional) Memory allocation hook.
 	AkMemMalign						pfMalign;						///< (Optional) Memory allocation hook.
 	AkMemRealloc					pfRealloc;						///< (Optional) Memory allocation hook.
@@ -156,7 +156,8 @@ struct AkMemSettings
 	/// @name Configuration.
 	//@{
 	AkUInt64						uMemAllocationSizeLimit;		///< When non-zero, limits the total amount of virtual and device memory allocated by AK::MemoryMgr.
-	bool							bUseDeviceMemAlways;			///< Use device memory for all allocations (on applicable platforms).
+	bool							bEnableSeparateDeviceHeap;		///< Enable use of device memory heap for all allocations (on applicable platforms).
+	AK::TempAlloc::InitSettings		tempAllocSettings[AK::TempAlloc::Type_NUM]; ///< Configuration of behavior for the temporary-memory pools.
 	//@}
 
 	/// @name Page allocation hooks, used by rpmalloc. Default to AKPLATFORM::AllocVM et al.
@@ -179,9 +180,6 @@ struct AkMemSettings
 	AkMemDebugFree					pfDebugFree;					///< (Optional) Memory allocation debugging hook. Used for tracking calls to pfFree.
 	AkUInt32						uMemoryDebugLevel;				///< Default 0 disabled. 1 debug enabled. 2 stomp allocator enabled. 3 stomp allocator and debug enabled. User implementations may use multiple non-zero values to offer different features.
 	//@}
-
-	// Moved to end-of-struct to maintain stability across 2022.1 modules.
-	AkMemTrimForThread				pfTrimForThread;				///< (Optional) Thread-specific allocator "trimming" hook.
 };
 //@}
 

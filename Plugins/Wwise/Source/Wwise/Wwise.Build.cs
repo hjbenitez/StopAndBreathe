@@ -31,7 +31,8 @@ public class Wwise : ModuleRules
 			{
 				"Core",
 				"CoreUObject",
-				"Engine"
+				"Engine",
+				"WwiseUtils"
 			}
 		);
 
@@ -47,6 +48,7 @@ public class Wwise : ModuleRules
 			);
 		}
 
+		// Optional modules
 		WwiseAudioLinkEditor.Apply(this, Target);
 		WwiseAudioLinkRuntime.Apply(this, Target);
 

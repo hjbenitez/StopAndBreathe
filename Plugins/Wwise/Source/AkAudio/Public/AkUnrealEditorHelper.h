@@ -26,7 +26,7 @@ DECLARE_DELEGATE_RetVal(FReply, FOnButtonClickedMigration);
 
 namespace AkUnrealEditorHelper
 {
-	AKAUDIO_API void ShowEventBasedPackagingMigrationDialog(FOnButtonClickedMigration in_OnclickedYes, FOnButtonClickedMigration in_OnclickedNo);
+	AKAUDIO_API void ShowEventBasedPackagingMigrationDialog(FOnButtonClickedMigration in_OnClickedYes, FOnButtonClickedMigration in_OnClickedNo);
 	AKAUDIO_API void SanitizePath(FString& Path, const FString& PreviousPath, const FText& DialogMessage);
 	AKAUDIO_API bool SanitizeFolderPathAndMakeRelativeToContentDir(FString& Path, const FString& PreviousPath, const FText& DialogMessage);
 

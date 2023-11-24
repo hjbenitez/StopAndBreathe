@@ -77,9 +77,9 @@ struct AkCommSettings
 		/// This is where the authoring application broadcasts "Game Discovery" requests
 		/// to discover games running on the network. Default value: 24024.
 		///
-		/// \warning Unlike the other port in this structure, this port cannot be dynamic
-		///          (cannot be set to 0). Refer to \ref initialization_comm_ports_discovery_broadcast
-		///          for more details.
+		/// \warning Unlike the other port in this structure, this port cannot be dynamic: setting it
+		/// to 0 will disable discovery. Refer to \ref initialization_comm_ports_discovery_broadcast
+		/// for more details.
 		AkUInt16 uDiscoveryBroadcast;
 
 		/// Used by the "command" channel.
@@ -192,6 +192,13 @@ namespace AK
 		/// \return
 		///      - AK_Success if initialization was successful.
 		AK_EXTERNAPIFUNC( const AkCommSettings&, GetCurrentSettings )();
+
+
+		/// Get the port currently in used by the command channel.
+		///
+		/// \return
+		///      - Port number.
+		AK_EXTERNAPIFUNC( AkUInt16, GetCommandPort )();
 
 		//@}
 	}

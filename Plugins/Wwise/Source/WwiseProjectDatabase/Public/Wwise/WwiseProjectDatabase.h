@@ -17,14 +17,15 @@ Copyright (c) 2023 Audiokinetic Inc.
 
 #pragma once
 
-#include "Misc/CommandLine.h"
 #include "Wwise/WwiseDataStructure.h"
 #include "Wwise/WwiseResourceLoader.h"
 #include "Wwise/WwiseProjectDatabaseModule.h"
 
+#include "Misc/CommandLine.h"
+
 class FWwiseResourceLoader;
 class FWwiseProjectDatabase;
-using FSharedWwiseDataStructure = TSharedRef<FWwiseDataStructure>;
+using FSharedWwiseDataStructure = TSharedRef<FWwiseDataStructure, ESPMode::ThreadSafe>;
 
 class WWISEPROJECTDATABASE_API FWwiseDataStructureScopeLock : public FRWScopeLock
 {

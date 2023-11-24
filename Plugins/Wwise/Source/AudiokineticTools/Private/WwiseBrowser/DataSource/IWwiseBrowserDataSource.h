@@ -41,7 +41,7 @@ public:
 	// Loads children for the item
 	virtual int32 LoadChildren(FWwiseTreeItemPtr ParentTreeItem) = 0;
 
-	virtual int32 GetChildItemCount(const FWwiseTreeItemPtr& InParentIrem) = 0;
+	virtual int32 GetChildItemCount(const FWwiseTreeItemPtr& InParentItem) = 0;
 
 	virtual FWwiseTreeItemPtr GetRootItem(EWwiseItemType::Type RootType) = 0;
 

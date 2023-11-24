@@ -21,6 +21,8 @@ Copyright (c) 2023 Audiokinetic Inc.
 #include "IMovieScenePlayer.h"
 #include "AkInclude.h"
 #include "AkAudioEvent.h"
+#include "WwiseUnrealDefines.h"
+
 #if UE_4_26_OR_LATER
 #include "Compilation/IMovieSceneTrackTemplateProducer.h"
 #else

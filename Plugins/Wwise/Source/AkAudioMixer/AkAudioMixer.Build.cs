@@ -37,7 +37,8 @@ public class AkAudioMixer : ModuleRules
 #endif
 
 				"AkAudio",
-				"WwiseSoundEngine"
+				"WwiseSoundEngine",
+				"WwiseUtils"
 			}
 		);
 

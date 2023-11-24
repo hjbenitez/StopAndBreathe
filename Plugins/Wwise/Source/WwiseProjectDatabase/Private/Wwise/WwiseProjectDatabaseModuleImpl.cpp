@@ -20,24 +20,15 @@ Copyright (c) 2023 Audiokinetic Inc.
 #include "Wwise/WwiseProjectDatabaseDelegates.h"
 #include "Wwise/WwiseProjectDatabaseImpl.h"
 #include "Wwise/Stats/ProjectDatabase.h"
-#include "AkUnrealHelper.h"
+#include "WwiseUnrealHelper.h"
 
 IMPLEMENT_MODULE(FWwiseProjectDatabaseModule, WwiseProjectDatabase)
 
 FWwiseProjectDatabase* FWwiseProjectDatabaseModule::GetProjectDatabase()
 {
-	if(IsRunningCommandlet())
+	if(!FPaths::FileExists(FPaths::Combine(WwiseUnrealHelper::GetSoundBankDirectory(), TEXT("ProjectInfo.json"))))
 	{
-		TArray<FString> Switches;
-		TArray<FString> Tokens;
-		FCommandLine::Parse(FCommandLine::Get(), Tokens, Switches);
-		for(auto& Token : Tokens)
-		{
-			if(Token.Contains(TEXT("run=GenerateSoundBanks"), ESearchCase::IgnoreCase))
-			{
-				return nullptr;
-			}
-		}
+		return nullptr;
 	}
 	Lock.ReadLock();
 	if (LIKELY(ProjectDatabase))
@@ -66,19 +57,13 @@ FWwiseProjectDatabase* FWwiseProjectDatabaseModule::InstantiateProjectDatabase()
 
 bool FWwiseProjectDatabaseModule::CanHaveDefaultInstance()
 {
+	if(!FPaths::FileExists(FPaths::Combine(WwiseUnrealHelper::GetSoundBankDirectory(), TEXT("ProjectInfo.json"))))
+	{
+		return false;
+	}
 	if(IsRunningCommandlet())
 	{
-		TArray<FString> Switches;
-		TArray<FString> Tokens;
-		FCommandLine::Parse(FCommandLine::Get(), Tokens, Switches);
-		for(auto& Token : Tokens)
-		{
-			if(Token.Contains(TEXT("run=GenerateSoundBanks"), ESearchCase::IgnoreCase))
-			{
-				return false;
-			}
-		}
-		if(AkUnrealHelper::GetSoundBankDirectory().IsEmpty())
+		if(WwiseUnrealHelper::GetSoundBankDirectory().IsEmpty())
 		{
 			return false;
 		}
@@ -92,13 +77,13 @@ FWwiseProjectDatabaseDelegates* FWwiseProjectDatabaseModule::GetProjectDatabaseD
 	{
 		ProjectDatabaseDelegates = InstantiateProjectDatabaseDelegates();
 	}
-
+	
 	return ProjectDatabaseDelegates;
 }
 
 FWwiseProjectDatabaseDelegates* FWwiseProjectDatabaseModule::InstantiateProjectDatabaseDelegates()
 {
-	SCOPED_WWISEPROJECTDATABASE_EVENT(TEXT("InstantiateProjectDatabaseDelegates"));
+	SCOPED_WWISEPROJECTDATABASE_EVENT(TEXT("GetProjectDatabaseUpdateDelegates"));
 	return new FWwiseProjectDatabaseDelegates;
 }
 

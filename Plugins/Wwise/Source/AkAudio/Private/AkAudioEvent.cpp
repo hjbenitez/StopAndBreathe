@@ -26,7 +26,7 @@ Copyright (c) 2023 Audiokinetic Inc.
 #include "AkComponentCallbackManager.h"
 #include "AkGameObject.h"
 #include "AkRoomComponent.h"
-#include "AkUnrealHelper.h"
+#include "WwiseUnrealDefines.h"
 #include "Wwise/WwiseExternalSourceManager.h"
 #include "Wwise/WwiseResourceLoader.h"
 #include "Wwise/API/WwiseSoundEngineAPI.h"
@@ -367,7 +367,7 @@ AkPlayingID UAkAudioEvent::PostAtLocation(const FVector& Location, const FRotato
 	TArray<AkAuxSendValue> AkReverbVolumes;
 	AudioDevice->GetAuxSendValuesAtLocation(Location, AkReverbVolumes, World);
 	Result = SoundEngine->SetGameObjectAuxSendValues(ObjectID, AkReverbVolumes.GetData(), AkReverbVolumes.Num());
-	UE_CLOG(UNLIKELY(Result != AK_Success), LogAkAudio, Log, TEXT("Could not Set AuxSend Values while PostOnLocation for AkAudioEvent '%s' (ObjId: %" PRIu64 "): (%" PRIu32 ") %s."), *GetName(), ObjectID, Result, AkUnrealHelper::GetResultString(Result));
+	UE_CLOG(UNLIKELY(Result != AK_Success), LogAkAudio, Log, TEXT("Could not Set AuxSend Values while PostOnLocation for AkAudioEvent '%s' (ObjId: %" PRIu64 "): (%" PRIu32 ") %s."), *GetName(), ObjectID, Result, WwiseUnrealHelper::GetResultString(Result));
 
 	AkRoomID RoomID = 0;
 	auto& RoomIndex = AudioDevice->GetRoomIndex();
@@ -387,12 +387,12 @@ AkPlayingID UAkAudioEvent::PostAtLocation(const FVector& Location, const FRotato
 	FQuat OrientationQuat(Orientation);
 	AudioDevice->FVectorsToAKWorldTransform(Location, OrientationQuat.GetForwardVector(), OrientationQuat.GetUpVector(), SoundPosition);
 	Result = SoundEngine->SetPosition(ObjectID, SoundPosition);
-	UE_CLOG(UNLIKELY(Result != AK_Success), LogAkAudio, Log, TEXT("Could not Set Position for AkAudioEvent '%s' (ObjId: %" PRIu64 "): (%" PRIu32 ") %s."), *GetName(), ObjectID, Result, AkUnrealHelper::GetResultString(Result));
+	UE_CLOG(UNLIKELY(Result != AK_Success), LogAkAudio, Log, TEXT("Could not Set Position for AkAudioEvent '%s' (ObjId: %" PRIu64 "): (%" PRIu32 ") %s."), *GetName(), ObjectID, Result, WwiseUnrealHelper::GetResultString(Result));
 
 	const auto PlayingID = PostOnGameObjectID(ObjectID, Delegate, Callback, Cookie, CallbackMask, LatentAction, AudioContext);
 
 	Result = SoundEngine->UnregisterGameObj( ObjectID );
-	UE_CLOG(UNLIKELY(Result != AK_Success), LogAkAudio, Log, TEXT("Could not Unregister GameObject after PostOnLocation for AkAudioEvent '%s' (ObjId: %" PRIu64 "): (%" PRIu32 ") %s."), *GetName(), ObjectID, Result, AkUnrealHelper::GetResultString(Result));
+	UE_CLOG(UNLIKELY(Result != AK_Success), LogAkAudio, Log, TEXT("Could not Unregister GameObject after PostOnLocation for AkAudioEvent '%s' (ObjId: %" PRIu64 "): (%" PRIu32 ") %s."), *GetName(), ObjectID, Result, WwiseUnrealHelper::GetResultString(Result));
 
 	return PlayingID;
 }
@@ -505,7 +505,7 @@ AkPlayingID UAkAudioEvent::PostEvent(const AkGameObjectID GameObjectID, FCreateC
 
 	if (!IsLoaded())
 	{
-		UE_LOG(LogAkAudio, Warning, TEXT("Failed to post AkAudioEvent: Data for '%s' wasn't found. Make sure the GeneratedSoundBanks folder (%s) exists and is properly set in the project settings."), *GetName(), *AkUnrealHelper::GetSoundBankDirectory());
+		UE_LOG(LogAkAudio, Warning, TEXT("Failed to post AkAudioEvent: Data for '%s' wasn't found. Make sure the GeneratedSoundBanks folder (%s) exists and is properly set in the project settings."), *GetName(), *WwiseUnrealHelper::GetSoundBankDirectory());
 		return AK_INVALID_PLAYING_ID;
 	}
 
@@ -676,10 +676,7 @@ void UAkAudioEvent::LoadEventData()
 		return;
 	}
 
-	if (LoadedEvent)
-	{
-		UnloadEventData(false);
-	}
+	UnloadEventData(false);
 	
 #if WITH_EDITORONLY_DATA
 	if (!IWwiseProjectDatabaseModule::ShouldInitializeProjectDatabase())
@@ -705,7 +702,13 @@ void UAkAudioEvent::LoadEventData()
 #endif
 
 	UE_LOG(LogAkAudio, Verbose, TEXT("%s - LoadEventData"), *GetName());
-	LoadedEvent = ResourceLoader->LoadEvent(EventCookedData);
+	
+	const auto NewlyLoadedEvent = ResourceLoader->LoadEvent(EventCookedData);
+	auto PreviouslyLoadedEvent = LoadedEvent.exchange(NewlyLoadedEvent);
+	if (UNLIKELY(PreviouslyLoadedEvent))
+	{
+		ResourceLoader->UnloadEvent(MoveTemp(PreviouslyLoadedEvent));
+	}
 }
 
 #if WITH_EDITOR
@@ -743,7 +746,8 @@ void UAkAudioEvent::BeginDestroy()
 
 void UAkAudioEvent::UnloadEventData(bool bAsync)
 {
-	if (LoadedEvent)
+	auto PreviouslyLoadedEvent = LoadedEvent.exchange(nullptr);
+	if (PreviouslyLoadedEvent)
 	{
 		auto* ResourceLoader = FWwiseResourceLoader::Get();
 		if (UNLIKELY(!ResourceLoader))
@@ -754,30 +758,30 @@ void UAkAudioEvent::UnloadEventData(bool bAsync)
 		if (bAsync)
 		{
 			FWwiseLoadedEventPromise Promise;
-			Promise.EmplaceValue(MoveTemp(LoadedEvent));
+			Promise.EmplaceValue(MoveTemp(PreviouslyLoadedEvent));
 			ResourceUnload = ResourceLoader->UnloadEventAsync(Promise.GetFuture());
 		}
 		else
 		{
-			ResourceLoader->UnloadEvent(MoveTemp(LoadedEvent));
+			ResourceLoader->UnloadEvent(MoveTemp(PreviouslyLoadedEvent));
 		}
-		LoadedEvent = nullptr;
 	}
 }
 
 bool UAkAudioEvent::IsDataFullyLoaded() const
 {
-	if (!LoadedEvent)
+	auto CurrentLoadedEvent = LoadedEvent.load();
+	if (!CurrentLoadedEvent)
 	{
 		return false;
 	}
 
-	return LoadedEvent->GetValue().LoadedData.IsLoaded();
+	return CurrentLoadedEvent->GetValue().LoadedData.IsLoaded();
 }
 
 bool UAkAudioEvent::IsLoaded() const
 {
-	return LoadedEvent != nullptr;
+	return LoadedEvent.load() != nullptr;
 }
 
 #if WITH_EDITORONLY_DATA
@@ -810,12 +814,13 @@ bool UAkAudioEvent::ObjectIsInSoundBanks()
 
 TArray<FWwiseExternalSourceCookedData> UAkAudioEvent::GetAllExternalSources() const
 {
-	if (!LoadedEvent)
+	auto CurrentLoadedEvent = LoadedEvent.load();
+	if (!CurrentLoadedEvent)
 	{
 		return {};
 	}
 
-	const auto& EventData = LoadedEvent->GetValue();
+	const auto& EventData = CurrentLoadedEvent->GetValue();
 	if (!EventData.LoadedData.IsLoaded())
 	{
 		return {};

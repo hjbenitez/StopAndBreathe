@@ -24,7 +24,8 @@ Copyright (c) 2023 Audiokinetic Inc.
 
 void UAkGroupValue::UnloadGroupValue(bool bAsync)
 {
-	if (LoadedGroupValue)
+	auto PreviouslyLoadedGroupValue = LoadedGroupValue.exchange(nullptr);
+	if (PreviouslyLoadedGroupValue)
 	{
 		auto* ResourceLoader = FWwiseResourceLoader::Get();
 		if (UNLIKELY(!ResourceLoader))
@@ -34,14 +35,13 @@ void UAkGroupValue::UnloadGroupValue(bool bAsync)
 		if (bAsync)
 		{
 			FWwiseLoadedGroupValuePromise Promise;
-			Promise.EmplaceValue(MoveTemp(LoadedGroupValue));
+			Promise.EmplaceValue(MoveTemp(PreviouslyLoadedGroupValue));
 			ResourceUnload = ResourceLoader->UnloadGroupValueAsync(Promise.GetFuture());
 		}
 		else
 		{
-			ResourceLoader->UnloadGroupValue(MoveTemp(LoadedGroupValue));
+			ResourceLoader->UnloadGroupValue(MoveTemp(PreviouslyLoadedGroupValue));
 		}
-		LoadedGroupValue = nullptr;
 	}
 }
 

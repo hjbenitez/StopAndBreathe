@@ -116,7 +116,7 @@ public :
 	* Call WAAPI to get information about an object form the path or the id of the object (inFrom).
 	*	
 	* @param inFromField	 The path or the id from which the data will be get.
-	* @param outJsonResult   A JSON object that contains useful informations about the call process, gets the object infos or gets an error infos in case the call failed.
+	* @param outJsonResult   A JSON object that contains useful information about the call process, gets the object infos or gets an error infos in case the call failed.
 	* @return			     A boolean to ensure that the call was successfully done.
 	*/
 	static bool CallWaapiGetInfoFrom(const FString& inFromField, const FString& inFromString, TSharedPtr<FJsonObject>& outJsonResult, const TArray<TransformStringField>& TransformFields);

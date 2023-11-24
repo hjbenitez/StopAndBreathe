@@ -19,8 +19,8 @@ Copyright (c) 2023 Audiokinetic Inc.
 
 #include "AkAudioType.h"
 #include "AkSettings.h"
-#include "AkUEFeatures.h"
-#include "AkUnrealHelper.h"
+#include "WwiseUEFeatures.h"
+#include "WwiseUnrealHelper.h"
 #include "AssetToolsModule.h"
 #include "AssetManagement/AkAssetDatabase.h"
 #include "ContentBrowserModule.h"

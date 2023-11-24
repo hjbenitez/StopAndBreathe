@@ -60,6 +60,16 @@ struct AkAcousticTexture
 	{
 	}
 
+	static bool Same(const AkAcousticTexture& lhs, const AkAcousticTexture& rhs)
+	{
+		return lhs.fAbsorptionLow == rhs.fAbsorptionLow &&
+			lhs.fAbsorptionMidLow == rhs.fAbsorptionMidLow &&
+			lhs.fAbsorptionMidHigh == rhs.fAbsorptionMidHigh &&
+			lhs.fAbsorptionHigh == rhs.fAbsorptionHigh &&
+			lhs.fAbsorptionOffset == rhs.fAbsorptionOffset &&
+			lhs.fScattering == rhs.fScattering;
+	}
+
 	AkUInt32						ID;
 
 	AkReal32						fAbsorptionOffset;

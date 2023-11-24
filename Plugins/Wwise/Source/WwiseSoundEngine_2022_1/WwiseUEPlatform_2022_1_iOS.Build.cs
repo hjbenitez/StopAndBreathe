@@ -43,13 +43,13 @@ public class WwiseUEPlatform_2022_1_IOS : WwiseUEPlatform
 	{
 		return new List<string>
 		{
-			Path.Combine(ThirdPartyFolder, AkPlatformLibDir, AkConfigurationDir + "-iphoneos", "lib")
+			Path.Combine(ThirdPartyFolder, AkPlatformLibDir, WwiseConfigurationDir + "-iphoneos", "lib")
 		};
 	}
 
 	public override List<string> GetAdditionalWwiseLibs()
 	{
-		return GetAllLibrariesInFolder(Path.Combine(ThirdPartyFolder, AkPlatformLibDir, AkConfigurationDir + "-iphoneos", "lib"), "a", true);
+		return GetAllLibrariesInFolder(Path.Combine(ThirdPartyFolder, AkPlatformLibDir, WwiseConfigurationDir + "-iphoneos", "lib"), "a", true);
 	}
 
 	public override List<string> GetRuntimeDependencies()

@@ -24,7 +24,7 @@ Copyright (c) 2023 Audiokinetic Inc.
 #include "AkAudioInputManager.h"
 #include "AkAudioEvent.h"
 #include "AkAudioDevice.h"
-#include "AkUnrealHelper.h"
+#include "WwiseUnrealHelper.h"
 #include "Wwise/API/WwiseSoundEngineAPI.h"
 #include "Wwise/Stats/AudioLink.h"
 #include "Wwise/Stats/Global.h"
@@ -253,7 +253,7 @@ void FWwiseAudioLinkInputClient::Register(const FName& InNameOfProducingSource)
 	}
 #endif
 	UE_CLOG(LIKELY(Result == AK_Success), LogWwiseAudioLink, VeryVerbose, TEXT("FWwiseAudioLinkInputClient::Register: Registered Object ID %" PRIu64 " (%s)"), ObjectId, *Name);
-	UE_CLOG(UNLIKELY(Result != AK_Success), LogWwiseAudioLink, Warning, TEXT("FWwiseAudioLinkInputClient::Register: Error registering Object ID %" PRIu64 " (%s): (%" PRIu32 ") %s"), ObjectId, *Name, Result, AkUnrealHelper::GetResultString(Result));
+	UE_CLOG(UNLIKELY(Result != AK_Success), LogWwiseAudioLink, Warning, TEXT("FWwiseAudioLinkInputClient::Register: Error registering Object ID %" PRIu64 " (%s): (%" PRIu32 ") %s"), ObjectId, *Name, Result, WwiseUnrealHelper::GetResultString(Result));
 
 	// Sanity checks
 #ifndef AK_OPTIMIZED
@@ -295,7 +295,7 @@ void FWwiseAudioLinkInputClient::Unregister()
 
 	const auto Result = SoundEngine->UnregisterGameObj(ObjectId);
 	UE_CLOG(LIKELY(Result == AK_Success), LogWwiseAudioLink, VeryVerbose, TEXT("FWwiseAudioLinkInputClient::Unregister: Unregistered Object ID %" PRIu64 " (%s)"), ObjectId, *ProducerName.ToString());
-	UE_CLOG(UNLIKELY(Result != AK_Success), LogWwiseAudioLink, Warning, TEXT("FWwiseAudioLinkInputClient::Unregister: Error Unregistering Object ID %" PRIu64 " (%s): (%" PRIu32 ") %s"), ObjectId, *ProducerName.ToString(), Result, AkUnrealHelper::GetResultString(Result));
+	UE_CLOG(UNLIKELY(Result != AK_Success), LogWwiseAudioLink, Warning, TEXT("FWwiseAudioLinkInputClient::Unregister: Error Unregistering Object ID %" PRIu64 " (%s): (%" PRIu32 ") %s"), ObjectId, *ProducerName.ToString(), Result, WwiseUnrealHelper::GetResultString(Result));
 	ObjectId = AK_INVALID_AUDIO_OBJECT_ID;
 }
 

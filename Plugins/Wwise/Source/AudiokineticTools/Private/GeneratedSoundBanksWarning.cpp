@@ -25,10 +25,11 @@ Copyright (c) 2023 Audiokinetic Inc.
 #include "GeneratedSoundBanksWarning.h"
 #include "AkAudioStyle.h"
 #include "AkSettings.h"
-#include "AkUnrealHelper.h"
+#include "WwiseUnrealDefines.h"
 #include "DesktopPlatformModule.h"
 #include "IAudiokineticTools.h"
 #include "IDesktopPlatform.h"
+#include "WwiseUnrealHelper.h"
 #include "Async/Async.h"
 #include "Framework/Application/SlateApplication.h"
 #include "Framework/Notifications/NotificationManager.h"
@@ -45,13 +46,13 @@ void FGeneratedSoundBanksWarning::DisplayGeneratedSoundBanksWarning()
 {
 	if (!FApp::CanEverRender())
 	{
-		FString SoundBankDirectory = AkUnrealHelper::GetSoundBankDirectory();
+		FString SoundBankDirectory = WwiseUnrealHelper::GetSoundBankDirectory();
 		UE_LOG(LogAudiokineticTools, Warning, TEXT("Couldn't find GeneratedSoundBanks info at path: \n%s"), *SoundBankDirectory);
 		return;
 	}
 	AsyncTask(ENamedThreads::Type::GameThread, [this]
 	{
-		FString SoundBankDirectory = AkUnrealHelper::GetSoundBankDirectory();
+		FString SoundBankDirectory = WwiseUnrealHelper::GetSoundBankDirectory();
 		FText InfoString = FText::FormatOrdered(LOCTEXT("GeneratedSoundBanksWarning", "Couldn't find GeneratedSoundBanks info at path: \n{0}\nSet the GeneratedSoundBanks folder?"), FText::FromString(SoundBankDirectory));
 		FSimpleDelegate SetGeneratedSoundBanksPathDelegate = FSimpleDelegate();
 		SetGeneratedSoundBanksPathDelegate.BindRaw(this, &FGeneratedSoundBanksWarning::OpenSettingsMenu);
@@ -94,7 +95,7 @@ void FGeneratedSoundBanksWarning::OpenSettingsMenu()
 	const void* ParentWindowHandle = FSlateApplication::Get().FindBestParentWindowHandleForDialogs(nullptr);
 	const FString Title = LOCTEXT("GeneratedSoundBanksFolderSelector", "Select the folder containing the Generated SoundBanks info").ToString();
 	FString Output;
-	bool bSuccess = FDesktopPlatformModule::Get()->OpenDirectoryDialog(ParentWindowHandle, Title, AkUnrealHelper::GetContentDirectory(), Output);
+	bool bSuccess = FDesktopPlatformModule::Get()->OpenDirectoryDialog(ParentWindowHandle, Title, WwiseUnrealHelper::GetContentDirectory(), Output);
 	if(bSuccess)
 	{
 		UAkSettings* Settings = GetMutableDefault<UAkSettings>();

@@ -17,7 +17,23 @@ Copyright (c) 2023 Audiokinetic Inc.
 
 #include "Platforms/AkPlatform_iOS/AkIOSInitializationSettings.h"
 #include "AkAudioDevice.h"
+#include "WwiseDefines.h"
 #include "InitializationSettings/AkAudioSession.h"
+
+///////////////////////////////////////////////////////////////////////////
+// UAkIOSInitializationSettings
+
+void FAkIOSAdvancedInitializationSettings::FillInitializationStructure(FAkInitializationStructure& InitializationStructure) const
+{
+	Super::FillInitializationStructure(InitializationStructure);
+	
+#if PLATFORM_IOS && !PLATFORM_TVOS
+#if WWISE_2023_1_OR_LATER
+	InitializationStructure.PlatformInitSettings.uNumSpatialAudioPointSources = uNumSpatialAudioPointSources;
+	InitializationStructure.PlatformInitSettings.bVerboseSystemOutput = bVerboseSystemOutput;
+#endif
+#endif
+}
 
 //////////////////////////////////////////////////////////////////////////
 // UAkIOSInitializationSettings

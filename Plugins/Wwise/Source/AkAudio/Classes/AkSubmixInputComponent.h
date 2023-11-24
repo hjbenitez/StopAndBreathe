@@ -52,7 +52,7 @@ public:
 protected:
 	/** The audio callback. This will be called continuously by the Wwise sound engine,
 	  * and is used to provide the sound engine with audio samples. If this function returns false, the audio
-	  * input event will be stopped and the functino will stop being called.
+	  * input event will be stopped and the function will stop being called.
 	  */
 	virtual bool FillSamplesBuffer(uint32 NumChannels, uint32 NumSamples, float** BufferToFill) override;
 	/** This callback is used to provide the Wwise sound engine with the required audio format. */

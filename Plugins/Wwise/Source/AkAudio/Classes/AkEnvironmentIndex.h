@@ -18,7 +18,7 @@ Copyright (c) 2023 Audiokinetic Inc.
 #pragma once
 
 #include "Math/GenericOctree.h"
-#include "WwiseDefines.h"
+#include "WwiseUnrealDefines.h"
 #include "Components/SceneComponent.h"
 #include "EngineDefines.h"
 

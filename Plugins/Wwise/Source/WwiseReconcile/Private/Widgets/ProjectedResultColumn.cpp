@@ -21,7 +21,7 @@ Copyright (c) 2023 Audiokinetic Inc.
 #include "WaapiPicker/WwiseTreeItem.h"
 #include "Widgets/SWidget.h"
 #include "AkUnrealAssetDataHelper.h"
-#include "AkUnrealHelper.h"
+#include "WwiseUnrealHelper.h"
 #include "ObjectTools.h"
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "Widgets/Images/SImage.h"

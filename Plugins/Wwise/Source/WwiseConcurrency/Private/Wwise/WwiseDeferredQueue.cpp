@@ -22,7 +22,8 @@ Copyright (c) 2023 Audiokinetic Inc.
 #include "Wwise/Stats/AsyncStats.h"
 #include "Wwise/Stats/Concurrency.h"
 
-FWwiseDeferredQueue::FWwiseDeferredQueue()
+FWwiseDeferredQueue::FWwiseDeferredQueue(const TCHAR* InDebugName) :
+	AsyncExecutionQueue(InDebugName)
 {
 }
 
@@ -71,7 +72,7 @@ void FWwiseDeferredQueue::Run(AK::IAkGlobalPluginContext* InContext)
 
 	if (!AsyncOpQueue.IsEmpty())
 	{
-		AsyncExecutionQueue.Async([this]() mutable
+		AsyncExecutionQueue.Async(WWISECONCURRENCY_ASYNC_NAME("FWwiseDeferredQueue::Run"), [this]() mutable
 		{
 			AsyncExec();
 		});
@@ -100,7 +101,7 @@ void FWwiseDeferredQueue::Wait()
 
 	if (!AsyncOpQueue.IsEmpty())
 	{
-		AsyncExecutionQueue.AsyncWait([this]() mutable
+		AsyncExecutionQueue.AsyncWait(WWISECONCURRENCY_ASYNC_NAME("FWwiseDeferredQueue::Wait"), [this]() mutable
 		{
 			AsyncExec();
 		});

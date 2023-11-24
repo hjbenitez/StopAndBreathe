@@ -24,7 +24,7 @@ Copyright (c) 2023 Audiokinetic Inc.
 #include "IMovieScenePlayer.h"
 #include "Engine/World.h"
 
-/** Defines the behaviour of an AKAdioEventSection within UE sequencer. */
+/** Defines the behaviour of an AKAudioEventSection within UE sequencer. */
 struct FMovieSceneAkAudioEventSectionData
 {
 	FMovieSceneAkAudioEventSectionData(const UMovieSceneAkAudioEventSection& InSection)

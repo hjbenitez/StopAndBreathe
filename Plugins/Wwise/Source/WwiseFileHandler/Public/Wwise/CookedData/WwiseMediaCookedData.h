@@ -81,3 +81,7 @@ inline bool operator==(const FWwiseMediaCookedData& InLhs, const FWwiseMediaCook
 {
 	return InLhs.MediaId == InRhs.MediaId && InLhs.MediaPathName == InRhs.MediaPathName;
 }
+inline bool operator!=(const FWwiseMediaCookedData& InLhs, const FWwiseMediaCookedData& InRhs)
+{
+	return InLhs.MediaId != InRhs.MediaId || InLhs.MediaPathName != InRhs.MediaPathName;
+}

@@ -17,6 +17,7 @@ Copyright (c) 2023 Audiokinetic Inc.
 
 #include "Platforms/AkPlatform_Android/AkAndroidInitializationSettings.h"
 #include "AkAudioDevice.h"
+#include "WwiseDefines.h"
 
 #if PLATFORM_ANDROID
 #include "Android/AndroidApplication.h"
@@ -33,6 +34,9 @@ void FAkAndroidAdvancedInitializationSettings::FillInitializationStructure(FAkIn
 #if PLATFORM_ANDROID
 	InitializationStructure.PlatformInitSettings.eAudioAPI = static_cast<AkAudioAPI>(AudioAPI);
 	InitializationStructure.PlatformInitSettings.bRoundFrameSizeToHWSize = RoundFrameSizeToHardwareSize;
+#if WWISE_2023_1_OR_LATER
+	InitializationStructure.PlatformInitSettings.bEnableLowLatency = UseLowLatencyMode;
+#endif
 #endif
 }
 
