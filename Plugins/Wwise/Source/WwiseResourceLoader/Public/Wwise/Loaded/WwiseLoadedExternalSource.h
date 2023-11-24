@@ -35,6 +35,7 @@ struct WWISERESOURCELOADER_API FWwiseLoadedExternalSourceInfo
 		FLoadedData& operator=(const FLoadedData&) = delete;
 
 		bool bLoaded = false;
+		int IsProcessing{0};
 
 		bool IsLoaded() const;
 	} LoadedData;
@@ -48,6 +49,7 @@ private:
 
 using FWwiseLoadedExternalSourceList = TDoubleLinkedList<FWwiseLoadedExternalSourceInfo>;
 using FWwiseLoadedExternalSourceListNode = FWwiseLoadedExternalSourceList::TDoubleLinkedListNode;
-using FWwiseLoadedExternalSource = FWwiseLoadedExternalSourceListNode*;
-using FWwiseLoadedExternalSourcePromise = TWwisePromise<FWwiseLoadedExternalSource>;
-using FWwiseLoadedExternalSourceFuture = TWwiseFuture<FWwiseLoadedExternalSource>;
+using FWwiseLoadedExternalSourcePtr = FWwiseLoadedExternalSourceListNode*;
+using FWwiseLoadedExternalSourcePtrAtomic = std::atomic<FWwiseLoadedExternalSourcePtr>;
+using FWwiseLoadedExternalSourcePromise = TWwisePromise<FWwiseLoadedExternalSourcePtr>;
+using FWwiseLoadedExternalSourceFuture = TWwiseFuture<FWwiseLoadedExternalSourcePtr>;

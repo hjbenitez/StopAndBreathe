@@ -26,20 +26,4 @@ public:
 
 	void StartupModule() override;
 	void ShutdownModule() override;
-
-	FQueuedThreadPool* GetExecutionQueueThreadPool() override;
-	FWwiseGlobalCallbacks* GetGlobalCallbacks() override;
-
-protected:
-	FRWLock ExecutionQueueLock;
-	FQueuedThreadPool* ExecutionQueueThreadPool = nullptr;
-
-	FRWLock GlobalCallbacksLock;
-	FWwiseGlobalCallbacks* GlobalCallbacks = nullptr;
-
-	virtual int32 NumberOfExecutionQueueThreadsToSpawn();
-	virtual void InitializeExecutionQueueThreadPool();
-	virtual void InitializeGlobalCallbacks();
-	virtual void TerminateExecutionQueueThreadPool();
-	virtual void TerminateGlobalCallbacks();
 };

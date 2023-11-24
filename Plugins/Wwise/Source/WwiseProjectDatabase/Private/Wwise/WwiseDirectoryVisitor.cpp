@@ -17,7 +17,7 @@ Copyright (c) 2023 Audiokinetic Inc.
 
 #include "Wwise/WwiseDirectoryVisitor.h"
 
-#include "AkUnrealHelper.h"
+#include "WwiseUnrealHelper.h"
 #include "Wwise/Metadata/WwiseMetadataRootFile.h"
 #include "Wwise/Metadata/WwiseMetadataProjectInfo.h"
 #include "Wwise/Metadata/WwiseMetadataPlatform.h"
@@ -170,10 +170,10 @@ bool FWwiseDirectoryVisitor::Visit(const TCHAR* FilenameOrDirectory, bool bIsDir
 				CurrentPlatform.PlatformGuid = Platform.GUID;
 				CurrentPlatform.PlatformName = Platform.Name;
 				FString RelativePlatformPath(PlatformPath);
-				FPaths::MakePathRelativeTo(RelativePlatformPath, *AkUnrealHelper::GetSoundBankDirectory());
+				FPaths::MakePathRelativeTo(RelativePlatformPath, *WwiseUnrealHelper::GetSoundBankDirectory());
 				CurrentPlatform.PathRelativeToGeneratedSoundBanks = FName(RelativePlatformPath);
 				FWwiseSharedPlatformId PlatformRef;
-				PlatformRef.Platform = MakeShared<FWwisePlatformId>(CurrentPlatform);
+				PlatformRef.Platform = MakeShared<FWwisePlatformId, ESPMode::ThreadSafe>(CurrentPlatform);
 
 				Futures.Add(Async(EAsyncExecution::TaskGraph, [this, PlatformRef, PlatformPath] {
 					auto* RootVisitor = new FPlatformRootDirectoryVisitor(PlatformRef, FileInterface);

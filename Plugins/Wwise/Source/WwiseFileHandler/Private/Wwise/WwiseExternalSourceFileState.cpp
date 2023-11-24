@@ -19,14 +19,16 @@ Copyright (c) 2023 Audiokinetic Inc.
 #include "Wwise/WwiseExternalSourceManager.h"
 #include "Wwise/WwiseFileCache.h"
 #include "Wwise/WwiseStreamingManagerHooks.h"
+#include "Wwise/WwiseTask.h"
 #include "Wwise/API/WwiseSoundEngineAPI.h"
-#include "Async/MappedFileHandle.h"
 #include "Wwise/Stats/FileHandlerMemory.h"
+
+#include "Async/MappedFileHandle.h"
 
 #include <inttypes.h>
 
 FWwiseExternalSourceFileState::FWwiseExternalSourceFileState(uint32 InMemoryAlignment, bool bInDeviceMemory,
-	uint32 InMediaId, const FName& InMediaPathName, const FName& InRootPath, int32 InCodecId) :
+                                                             uint32 InMediaId, const FName& InMediaPathName, const FName& InRootPath, int32 InCodecId) :
 	AkExternalSourceInfo(),
 	MemoryAlignment(InMemoryAlignment),
 	bDeviceMemory(bInDeviceMemory),
@@ -236,7 +238,7 @@ void FWwiseStreamedExternalSourceFileState::LoadInSoundEngine(FLoadInSoundEngine
 		if (UNLIKELY(!bResult))
 		{
 			UE_LOG(LogWwiseFileHandler, Error, TEXT("FWwiseStreamedExternalSourceFileState::LoadInSoundEngine %" PRIu32 ": Failed to load Streaming ExternalSource (%s)."), MediaId, *MediaPathName.ToString());
-			FFunctionGraphTask::CreateAndDispatchWhenReady([StreamedFile = StreamedFile]
+			LaunchWwiseTask(WWISEFILEHANDLER_ASYNC_NAME("FWwiseStreamedExternalSourceFileState::LoadInSoundEngine delete"), [StreamedFile = StreamedFile]
 			{
 				delete StreamedFile;
 			});

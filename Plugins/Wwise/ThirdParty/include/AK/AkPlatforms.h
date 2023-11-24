@@ -39,10 +39,6 @@ the specific language governing permissions and limitations under the License.
 
 	#include <AK/SoundEngine/Platforms/XboxGC/AkTypes.h>
 
-#elif defined( _XBOX_ONE )
-
-	#include <AK/SoundEngine/Platforms/XboxOne/AkTypes.h>
-
 #elif defined( _WIN32 ) || defined ( _WIN64 ) || defined( WINAPI_FAMILY )
 
 	#include <AK/SoundEngine/Platforms/Windows/AkTypes.h>
@@ -55,17 +51,9 @@ the specific language governing permissions and limitations under the License.
 
 	#include <AK/SoundEngine/Platforms/PS4/AkTypes.h>
 	
-#elif defined( __LUMIN__ )
-
-	#include <AK/SoundEngine/Platforms/Lumin/AkTypes.h>
-
 #elif defined( __ANDROID__ ) && !defined (AK_LINUX_AOSP)
 
 	#include <AK/SoundEngine/Platforms/Android/AkTypes.h>
-
-#elif defined( __ggp__ )
-
-	#include <AK/SoundEngine/Platforms/GGP/AkTypes.h>
 
 #elif defined( __linux__ )
 

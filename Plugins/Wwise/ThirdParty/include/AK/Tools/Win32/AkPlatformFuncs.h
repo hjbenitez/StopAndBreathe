@@ -78,8 +78,6 @@ namespace AK
 #define AK_RETURN_THREAD_OK                     0x00000000
 #define AK_RETURN_THREAD_ERROR                  0x00000001
 #define AK_DEFAULT_STACK_SIZE					(128*1024)
-#define AK_VM_PAGE_SIZE                         (64*1024)
-#define AK_VM_HUGE_PAGE_SIZE                    (2*1024*1024)
 #define AK_THREAD_PRIORITY_NORMAL				THREAD_PRIORITY_NORMAL
 #define AK_THREAD_PRIORITY_ABOVE_NORMAL			THREAD_PRIORITY_ABOVE_NORMAL
 #define AK_THREAD_PRIORITY_BELOW_NORMAL			THREAD_PRIORITY_BELOW_NORMAL
@@ -109,15 +107,11 @@ namespace AKPLATFORM
 	/// Platform Independent Helper
 	inline AKRESULT AkCreateEvent( AkEvent & out_event )
     {
-#ifdef AK_USE_UWP_API
-		out_event = CreateEventEx(nullptr, nullptr, 0, STANDARD_RIGHTS_ALL|EVENT_MODIFY_STATE);
-#else
 		out_event = ::CreateEvent( NULL,					// No security attributes
                                     false,					// Reset type: automatic
                                     false,					// Initial signaled state: not signaled
                                     NULL                    // No name
                                    );
-#endif
 		return ( out_event ) ? AK_Success : AK_Fail;
 	}
 
@@ -132,12 +126,7 @@ namespace AKPLATFORM
 	/// Platform Independent Helper
 	inline void AkWaitForEvent( AkEvent & in_event )
 	{
-#ifdef AK_USE_UWP_API
-		DWORD dwWaitResult = ::WaitForSingleObjectEx( in_event, INFINITE, FALSE );
-        AKASSERT( dwWaitResult == WAIT_OBJECT_0 );
-#else
         AKVERIFY( ::WaitForSingleObject( in_event, INFINITE ) == WAIT_OBJECT_0 );
-#endif
 	}
 
 	/// Platform Independent Helper
@@ -155,21 +144,11 @@ namespace AKPLATFORM
 	/// Platform Independent Helper
 	inline AKRESULT AkCreateSemaphore(AkSemaphore& out_semaphore, AkUInt32 in_initialCount)
 	{
-#ifdef AK_USE_UWP_API
-		out_semaphore = ::CreateSemaphoreEx(
-			NULL,				// no security attributes
-			in_initialCount,	// initial count
-			INT_MAX,			// no maximum -- matches posix semaphore behaviour
-			NULL,				// no name
-			0,					// reserved
-			STANDARD_RIGHTS_ALL | SEMAPHORE_MODIFY_STATE);
-#else
 		out_semaphore = ::CreateSemaphore(
 			NULL,				// no security attributes
 			in_initialCount,	// initial count
 			INT_MAX,			// no maximum -- matches posix semaphore behaviour
 			NULL);				// no name
-#endif
 		return (out_semaphore) ? AK_Success : AK_Fail;
 	}
 
@@ -190,28 +169,6 @@ namespace AKPLATFORM
 	{
 		AKVERIFY(ReleaseSemaphore(in_semaphore, in_count, NULL) >= 0);
 	}
-
-	// Virtual Memory
-	// ------------------------------------------------------------------
-
-#if defined(AK_WIN)
-#ifdef AK_WIN_UNIVERSAL_APP
-	AkForceInline void* AllocVM(size_t size, size_t* /*extra*/)
-	{
-		return VirtualAllocFromApp(NULL, size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
-	}
-#else
-	AkForceInline void* AllocVM(size_t size, size_t* /*extra*/)
-	{
-		return VirtualAlloc(NULL, size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
-	}
-
-#endif
-	AkForceInline void FreeVM(void* address, size_t size, size_t /*extra*/, size_t release)
-	{
-		VirtualFree(address, release ? 0 : size, release ? MEM_RELEASE : MEM_DECOMMIT);
-	}
-#endif
 
     // Threads
     // ------------------------------------------------------------------
@@ -381,11 +338,7 @@ namespace AKPLATFORM
     {
         AKASSERT( in_pThread );
         AKASSERT( *in_pThread );
-#ifdef AK_USE_UWP_API
-        ::WaitForSingleObjectEx( *in_pThread, INFINITE, FALSE );
-#else
         ::WaitForSingleObject( *in_pThread, INFINITE );
-#endif
     }
 
 	/// Returns the calling thread's ID.
@@ -449,76 +402,6 @@ namespace AKPLATFORM
     {
         return ( in_iNow - in_iStart ) / AK::g_fFreqRatio;
     }
-
-#if defined(AK_XBOXSERIESX)
-	// Waits for a limited amount of time for in_pVal to hit zero (without yielding the thread)
-	inline void AkLimitedSpinForZero(AkAtomic32* in_pVal)
-	{
-		// monitorx and waitx are available on certain AMD CPUs, so we can have a custom impl of AkLimitedSpinForZero
-		AkInt64 endSpinTime = 0;
-		AkInt64 currentTime = 0;
-		PerformanceCounter(&endSpinTime);
-		endSpinTime += AkInt64(AK::g_fFreqRatio * 0.01); // only spin for about 10us
-		while (true)
-		{
-			// set up monitorx on pVal
-			_mm_monitorx((void*)in_pVal, 0U, 0U);
-			// if pval is zero, skip out
-			if (AkAtomicLoad32(in_pVal) == 0)
-			{
-				break;
-			}
-			// wait until a store to pVal occurs (or ~1us passes)
-			_mm_mwaitx(2U, 0U, 1000U);
-
-			// Check if we've hit the deadline for the timeout
-			PerformanceCounter(&currentTime);
-			if (currentTime > endSpinTime)
-			{
-				break;
-			}
-		}
-	}
-
-	// Waits for a limited amount of time for in_pVal to get atomically shift from the expected value to the proposed one
-	// returns true if acquisition succeeded
-	inline bool AkLimitedSpinToAcquire(AkAtomic32* in_pVal, AkInt32 in_proposed, AkInt32 in_expected)
-	{
-		if (AkAtomicCas32(in_pVal, in_proposed, in_expected))
-		{
-			return true;
-		}
-
-		// Cas failed, start the slower evaluation
-
-		// monitorx and waitx are available on certain AMD CPUs, so we can use monitorx/waitx
-		AkInt64 endSpinTime = 0;
-		AkInt64 currentTime = 0;
-		PerformanceCounter(&endSpinTime);
-		endSpinTime += AkInt64(AK::g_fFreqRatio * 0.01); // only spin for about 10us
-		while (true)
-		{
-			// set up monitorx on pVal
-			_mm_monitorx((void*)in_pVal, 0U, 0U);
-			// attempt cas to acquire and if successful, skip out
-			if (AkAtomicCas32(in_pVal, in_proposed, in_expected))
-			{
-				return true;
-			}
-			// wait until a store to pVal occurs (or ~1us passes)
-			_mm_mwaitx(2U, 0U, 1000U);
-
-			// Check if we've hit the deadline for the timeout
-			PerformanceCounter(&currentTime);
-			if (currentTime > endSpinTime)
-			{
-				return false;
-			}
-		}
-	}
-
-#define AK_LIMITEDSPINFORZERO // mark AkLimitedSpinForZero as defined to avoid duplicate definitions
-#endif
 
 	/// String conversion helper. If io_pszAnsiString is null, the function returns the required size.
 	inline AkInt32 AkWideCharToChar( const wchar_t*	in_pszUnicodeString,
@@ -806,9 +689,9 @@ namespace AKPLATFORM
 	}
 
 	// Use with AkOSChar.
-	#define AK_PATH_SEPARATOR	(L"\\")
-	#define AK_LIBRARY_PREFIX	(L"")
-	#define AK_DYNAMIC_LIBRARY_EXTENSION	(L".dll")
+	#define AK_PATH_SEPARATOR	L"\\"
+	#define AK_LIBRARY_PREFIX	L""
+	#define AK_DYNAMIC_LIBRARY_EXTENSION	L".dll"
 
 	#define AK_FILEHANDLE_TO_UINTPTR(_h) ((AkUIntPtr)_h)
 	#define AK_SET_FILEHANDLE_TO_UINTPTR(_h,_u) _h = (AkFileHandle)_u

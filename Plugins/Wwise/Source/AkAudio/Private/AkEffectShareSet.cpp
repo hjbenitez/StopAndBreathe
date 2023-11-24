@@ -59,10 +59,7 @@ void UAkEffectShareSet::LoadEffectShareSet()
 		return;
 	}
 	
-	if (LoadedShareSet)
-	{
-		UnloadEffectShareSet(false);
-	}
+	UnloadEffectShareSet(false);
 
 #if WITH_EDITORONLY_DATA
 	if (!IWwiseProjectDatabaseModule::ShouldInitializeProjectDatabase())
@@ -85,13 +82,19 @@ void UAkEffectShareSet::LoadEffectShareSet()
 		return;
 	}
 #endif
-
-	LoadedShareSet = ResourceLoader->LoadShareSet(ShareSetCookedData);
+	
+	const auto NewlyLoadedShareSet = ResourceLoader->LoadShareSet(ShareSetCookedData);
+	auto PreviouslyLoadedShareSet = LoadedShareSet.exchange(NewlyLoadedShareSet);
+	if (UNLIKELY(PreviouslyLoadedShareSet))
+	{
+		ResourceLoader->UnloadShareSet(MoveTemp(PreviouslyLoadedShareSet));
+	}
 }
 
 void UAkEffectShareSet::UnloadEffectShareSet(bool bAsync)
 {
-	if (LoadedShareSet)
+	auto PreviouslyLoadedShareSet = LoadedShareSet.exchange(nullptr);
+	if (PreviouslyLoadedShareSet)
 	{
 		auto* ResourceLoader = FWwiseResourceLoader::Get();
 		if (UNLIKELY(!ResourceLoader))
@@ -101,14 +104,13 @@ void UAkEffectShareSet::UnloadEffectShareSet(bool bAsync)
 		if (bAsync)
 		{
 			FWwiseLoadedShareSetPromise Promise;
-			Promise.EmplaceValue(MoveTemp(LoadedShareSet));
+			Promise.EmplaceValue(MoveTemp(PreviouslyLoadedShareSet));
 			ResourceUnload = ResourceLoader->UnloadShareSetAsync(Promise.GetFuture());
 		}
 		else
 		{
-			ResourceLoader->UnloadShareSet(MoveTemp(LoadedShareSet));
+			ResourceLoader->UnloadShareSet(MoveTemp(PreviouslyLoadedShareSet));
 		}
-		LoadedShareSet = nullptr;
 	}
 }
 

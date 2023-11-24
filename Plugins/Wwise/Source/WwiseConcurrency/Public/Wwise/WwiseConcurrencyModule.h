@@ -20,10 +20,7 @@ Copyright (c) 2023 Audiokinetic Inc.
 #include "Modules/ModuleManager.h"
 #include "Misc/ConfigCacheIni.h"
 
-#include "AkInclude.h"
-
 class FQueuedThreadPool;
-class FWwiseGlobalCallbacks;
 
 class IWwiseConcurrencyModule : public IModuleInterface
 {
@@ -78,8 +75,6 @@ public:
 		return Result;
 	}
 
-	virtual FQueuedThreadPool* GetExecutionQueueThreadPool() = 0;
-	virtual FWwiseGlobalCallbacks* GetGlobalCallbacks() = 0;
 
 private:
 	static inline FName GetModuleNameFromConfig()

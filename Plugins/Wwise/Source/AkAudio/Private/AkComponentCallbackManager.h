@@ -18,7 +18,7 @@ Copyright (c) 2023 Audiokinetic Inc.
 #pragma once
 
 #include "AkAudioDevice.h"
-
+#include "WwiseUnrealDefines.h"
 
 class IAkUserEventCallbackPackage
 {
@@ -133,7 +133,7 @@ private:
 
 	FCriticalSection CriticalSection;
 
-	typedef AkGameObjectIdKeyFuncs<PackageSet, false> PackageSetGameObjectIDKeyFuncs;
+	typedef WwiseUnrealHelper::AkGameObjectIdKeyFuncs<PackageSet, false> PackageSetGameObjectIDKeyFuncs;
 	TMap<AkGameObjectID, PackageSet, FDefaultSetAllocator, PackageSetGameObjectIDKeyFuncs> GameObjectToPackagesMap;
 
 	// Used for quick lookup in cancel

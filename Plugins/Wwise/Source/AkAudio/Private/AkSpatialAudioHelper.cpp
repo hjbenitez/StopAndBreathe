@@ -22,18 +22,6 @@ Copyright (c) 2023 Audiokinetic Inc.
 
 namespace AkSpatialAudioHelper
 {
-	AActor* GetActorFromHitResult(const FHitResult& HitResult)
-	{
-		AActor* HitActor = nullptr;
-#if UE_5_0_OR_LATER
-		HitActor = HitResult.HitObjectHandle.FetchActor();
-#else
-		HitActor = HitResult.Actor.Get();
-#endif
-
-		return HitActor;
-	}
-	
 	bool IsAkSpatialAudioActorClass(const AActor* Actor)
 	{
 		if (Actor == nullptr)

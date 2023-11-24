@@ -18,6 +18,22 @@ Copyright (c) 2023 Audiokinetic Inc.
 #include "Platforms/AkPlatform_tvOS/AkTVOSInitializationSettings.h"
 #include "AkAudioDevice.h"
 #include "InitializationSettings/AkAudioSession.h"
+#include "WwiseDefines.h"
+
+///////////////////////////////////////////////////////////////////////////
+// UAkTVOSInitializationSettings
+
+void FAkTVOSAdvancedInitializationSettings::FillInitializationStructure(FAkInitializationStructure& InitializationStructure) const
+{
+	Super::FillInitializationStructure(InitializationStructure);
+	
+#if PLATFORM_TVOS
+#if WWISE_2023_1_OR_LATER
+	InitializationStructure.PlatformInitSettings.uNumSpatialAudioPointSources = uNumSpatialAudioPointSources;
+	InitializationStructure.PlatformInitSettings.bVerboseSystemOutput = bVerboseSystemOutput;
+#endif
+#endif
+}
 
 //////////////////////////////////////////////////////////////////////////
 // UAkTVOSInitializationSettings

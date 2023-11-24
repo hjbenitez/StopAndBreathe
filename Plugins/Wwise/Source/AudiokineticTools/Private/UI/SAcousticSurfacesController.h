@@ -18,7 +18,7 @@ Copyright (c) 2023 Audiokinetic Inc.
 #pragma once
 
 #include "AkAcousticTexture.h"
-#include "AkUEFeatures.h"
+#include "WwiseUEFeatures.h"
 #include "AssetThumbnail.h"
 #include "Framework/Application/SlateApplication.h"
 #include "Widgets/SCompoundWidget.h"

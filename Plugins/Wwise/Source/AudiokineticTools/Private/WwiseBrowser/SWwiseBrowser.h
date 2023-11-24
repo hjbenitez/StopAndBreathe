@@ -20,6 +20,7 @@ Copyright (c) 2023 Audiokinetic Inc.
 #include "WaapiPlaybackTransport.h"
 #include "DataSource/WwiseBrowserDataSource.h"
 #include "DataSource/WaapiDataSource.h"
+#include "Framework/Commands/UICommandList.h"
 #include "Misc/TextFilter.h"
 #include "Widgets/SCompoundWidget.h"
 #include "Styling/SlateBrush.h"

@@ -29,18 +29,9 @@ public class WwiseUEPlatform_2022_1_Linux : WwiseUEPlatform
 		return Path.Combine(LibPath, "lib" + LibName + ".a");
 	}
 
-	public override string AkConfigurationDir
-	{
-		get
-		{
-			// Linux cross-compile toolchain does not support communication, force release config.
-			return "Release";
-		}
-	}
-
 	public override bool SupportsAkAutobahn { get { return false; } }
 
-	public override bool SupportsCommunication { get { return false; } }
+	public override bool SupportsCommunication { get { return true; } }
 
 	public override bool SupportsDeviceMemory { get { return false; } }
 
@@ -67,7 +58,6 @@ public class WwiseUEPlatform_2022_1_Linux : WwiseUEPlatform
 	{
 		return new List<string>
 		{
-			"AK_OPTIMIZED" // Always using release, force Optimized.
 		};
 	}
 

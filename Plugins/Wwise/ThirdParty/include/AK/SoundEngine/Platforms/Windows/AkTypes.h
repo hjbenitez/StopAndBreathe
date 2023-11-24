@@ -56,14 +56,7 @@ the specific language governing permissions and limitations under the License.
 #ifdef WINAPI_FAMILY
 	#include <winapifamily.h>
 	#if !WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
-		#define AK_USE_UWP_API
-		#define AK_USE_METRO_API // deprecated
-		#ifdef __cplusplus_winrt
-			#define AK_UWP_CPP_CX // To test for UWP code which uses Microsoft's C++/CX extended language (not all projects do)
-		#endif
-		#if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_PC_APP)
-			#define AK_WIN_UNIVERSAL_APP
-		#endif
+#error "The current WINAPI_FAMILY_PARTITION is not supported."
 	#endif
 #endif
 
@@ -94,11 +87,7 @@ the specific language governing permissions and limitations under the License.
 #define AK_BUFFER_ALIGNMENT AK_SIMD_ALIGNMENT
 #define AK_XAUDIO2_FLAGS 0
 
-#ifdef AK_USE_UWP_API
-#define AK_WINRT_DEVICENOTIFICATION
-#else
 #define AK_DEVICE_CACHE_SUPPORT					///< Supports output device notifications & cache
-#endif
 
 #if defined AK_CPU_X86 || defined AK_CPU_X86_64 || defined AK_CPU_ARM_NEON
 #define AKSIMD_V4F32_SUPPORTED

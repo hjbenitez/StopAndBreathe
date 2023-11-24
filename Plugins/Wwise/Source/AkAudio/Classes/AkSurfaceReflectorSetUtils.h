@@ -83,13 +83,13 @@ struct FAkSurfacePoly
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Audiokinetic|AkSurfaceReflectorSet")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Surface Properties")
 	UAkAcousticTexture* Texture = nullptr;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Audiokinetic|AkSurfaceReflectorSet", DisplayName = "Transmission Loss", meta = (ClampMin = "0.0", ClampMax = "1.0"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Surface Properties", DisplayName = "Transmission Loss", meta = (ClampMin = "0.0", ClampMax = "1.0"))
 	float Occlusion = 1.f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Audiokinetic|AkSurfaceReflectorSet")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Surface Properties")
 	bool EnableSurface = true;
 
 	void SetSurfaceArea(float area) { SurfaceArea = area; }

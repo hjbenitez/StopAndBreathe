@@ -18,12 +18,7 @@ Copyright (c) 2023 Audiokinetic Inc.
 #if defined(PLATFORM_LINUX) && PLATFORM_LINUX
 
 #include "Platforms/AkPlatform_Linux/AkLinuxPlatform.h"
-#include "AkUnrealHelper.h"
+#include "WwiseUnrealHelper.h"
 #include "Misc/Paths.h"
-
-FString FAkLinuxPlatform::GetDSPPluginsDirectory(const FString& PlatformArchitecture)
-{
-	return AkUnrealHelper::GetThirdPartyDirectory() / PlatformArchitecture / "Release" / "bin" / "";
-}
 
 #endif

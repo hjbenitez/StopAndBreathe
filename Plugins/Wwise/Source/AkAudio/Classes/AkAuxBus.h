@@ -67,7 +67,7 @@ public:
 private:
 	void LoadAuxBus();
 	void UnloadAuxBus(bool bAsync);
-	FWwiseLoadedAuxBus LoadedAuxBus;
+	FWwiseLoadedAuxBusPtrAtomic LoadedAuxBus{nullptr};
 
 #if WITH_EDITORONLY_DATA
 	virtual void CookAdditionalFilesOverride(const TCHAR* PackageFilename, const ITargetPlatform* TargetPlatform,

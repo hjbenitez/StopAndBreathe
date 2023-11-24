@@ -17,7 +17,7 @@ Copyright (c) 2023 Audiokinetic Inc.
 
 #include "Wwise/WwiseProjectDatabase.h"
 
-#include "AkUnrealHelper.h"
+#include "WwiseUnrealHelper.h"
 #include "Wwise/WwiseResourceLoader.h"
 #include "Wwise/WwiseProjectDatabaseDelegates.h"
 
@@ -457,7 +457,7 @@ const FWwisePlatformDataStructure* FWwiseDataStructureScopeLock::GetCurrentPlatf
 
 		if (DataStructure.RootData.JsonFiles.Num() == 0 &&  Platform.GetPlatformName().ToString() != TEXT("None"))
 		{
-			FString SoundBankPath = AkUnrealHelper::GetSoundBankDirectory() /  Platform.Platform->PathRelativeToGeneratedSoundBanks.ToString();
+			FString SoundBankPath = WwiseUnrealHelper::GetSoundBankDirectory() /  Platform.Platform->PathRelativeToGeneratedSoundBanks.ToString();
 			UE_LOG(LogWwiseProjectDatabase, Error,
 			       TEXT("No JSON Metadata file found for platform %s at %s. Have SoundBanks been generated?"),
 			       *SoundBankPath,

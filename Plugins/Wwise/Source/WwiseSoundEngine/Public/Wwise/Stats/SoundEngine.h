@@ -18,7 +18,6 @@ Copyright (c) 2023 Audiokinetic Inc.
 #pragma once
 
 #include "Stats/Stats.h"
-#include "Wwise/Stats/NamedEvents.h"
 
 DECLARE_STATS_GROUP(TEXT("SoundEngine"), STATGROUP_WwiseSoundEngine, STATCAT_Wwise);
 

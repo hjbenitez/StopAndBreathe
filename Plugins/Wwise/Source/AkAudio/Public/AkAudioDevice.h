@@ -29,11 +29,14 @@ Copyright (c) 2023 Audiokinetic Inc.
 #include "AkGameplayTypes.h"
 #include "AkGroupValue.h"
 #include "AkInclude.h"
+#include "WwiseUnrealDefines.h"
 #include "AkJobWorkerScheduler.h"
 #include "Wwise/WwiseSharedLanguageId.h"
 #include "Engine/EngineTypes.h"
 
 #include "Wwise/Stats/AkAudio.h"
+#include "Wwise/AkPortalObstructionAndOcclusionService.h"
+#include "Wwise/WwiseSoundEngineUtils.h"
 
 #if WITH_EDITORONLY_DATA
 #include "EditorViewportClient.h"
@@ -74,23 +77,6 @@ typedef TSet<UAkComponent*> UAkComponentSet;
 
 #define DUMMY_GAMEOBJ ((AkGameObjectID)0x2)
 #define SOUNDATLOCATION_GAMEOBJ ((AkGameObjectID)0x3)
-
-/** Define hashing for AkGameObjectID. */
-template<typename ValueType, bool bInAllowDuplicateKeys>
-struct AkGameObjectIdKeyFuncs : TDefaultMapKeyFuncs<AkGameObjectID, ValueType, bInAllowDuplicateKeys>
-{
-	static FORCEINLINE uint32 GetKeyHash(AkGameObjectID Key)
-	{
-		if (sizeof(Key) <= 4)
-		{
-			return (uint32)Key;
-		}
-		else
-		{
-			return GetTypeHash((uint64)Key);
-		}
-	}
-};
 
 
 struct AKAUDIO_API FAkAudioDeviceDelegates
@@ -154,14 +140,6 @@ public:
 	 * Determine if any rooms or reverb volumes have been added to World during the current frame
 	 */
 	bool WorldSpatialAudioVolumesUpdated(UWorld* World);
-
-	/**
-	 * Clears all loaded soundbanks
-	 *
-	 * @return Result from ak sound engine 
-	 */
-	AK_DEPRECATED(2022.1.0, "This method is now deprecated, please use ClearSoundBanksAndMedia.")
-	AKRESULT ClearBanks();
 
 	/**
 	 * Clears all loaded SoundBanks and associated media
@@ -383,365 +361,6 @@ public:
 	 */
 	void SetCurrentAudioCultureAsync(const FString& AudioCulture, const FOnSetCurrentAudioCultureCompleted& CompletedCallback);
 
-	/**
-	 * Post an event to ak soundengine
-	 *
-	 * @warning This function is deprecated. Please see \ref UAkAudioEvent::PostOnActor.
-	 *
-	 * @param AkEvent		Event to post
-	 * @param Actor			Actor on which to play the event
-	 * @param Flags			Bitmask: see \ref AkCallbackType
-	 * @param Callback		Callback function
-	 * @param Cookie		Callback cookie that will be sent to the callback function along with additional information.
-	 * @param bStopWhenOwnerDestroyed If true, then the sound should be stopped if the owning actor is destroyed
-	 * @param AudioContext Context in which sound is played. Only gameplay sounds are affected by PIE pause/stop
-	 * @return ID assigned by ak soundengine
-	 */
-	AK_DEPRECATED(2022.1, "Use UAkAudioEvent::PostOnActor")
-	AkPlayingID PostAkAudioEventOnActor(
-		class UAkAudioEvent * AkEvent,
-		AActor * Actor,
-        AkUInt32 Flags = 0,
-		AkCallbackFunc Callback = NULL,
-		void * Cookie = NULL,
-		bool bStopWhenOwnerDestroyed = false,
-		EAkAudioContext AudioContext = EAkAudioContext::GameplayAudio
-        );
-
-	
-	/**
-	 * Post an event to ak soundengine
-	 *
-	 * @warning This function is deprecated. You are expected to use an UAkAudioEvent. Please see \ref UAkAudioEvent::PostOnComponent.
-	 *
-	 * @param AkEvent		Event to post
-	 * @param Actor			Actor on which to play the event
-	 * @param Flags			Bitmask: see \ref AkCallbackType
-	 * @param Callback		Callback function
-	 * @param Cookie		Callback cookie that will be sent to the callback function along with additional information.
-	 * @param bStopWhenOwnerDestroyed If true, then the sound should be stopped if the owning actor is destroyed
-	 * @param AudioContext Context in which sound is played. Only gameplay sounds are affected by PIE pause/stop
-	 * @return ID assigned by ak soundengine
-	 */
-	AkPlayingID PostAkAudioEventOnComponent(
-		UAkAudioEvent* AkEvent,
-		UAkComponent* Component,
-		AkUInt32 Flags = 0,
-		AkCallbackFunc Callback = NULL,
-		void* Cookie = NULL,
-		bool bStopWhenOwnerDestroyed = false,
-		EAkAudioContext AudioContext = EAkAudioContext::GameplayAudio
-	);
-
-
-	/**
-	 * Post an event to ak soundengine by ID
-	 *
-	 * @warning This function is deprecated. You are expected to use an UAkAudioEvent. Please see \ref UAkAudioEvent::PostOnActor.
-	 *
-	 * @param EventShortID		ID of the event to post
-	 * @param Actor				Actor on which to play the event
-	 * @param Flags				Bitmask: see \ref AkCallbackType
-	 * @param Callback			Callback function
-	 * @param Cookie			Callback cookie that will be sent to the callback function along with additional information.
-	 * @param bStopWhenOwnerDestroyed If true, then the sound should be stopped if the owning actor is destroyed
-	 * @param AudioContext Context in which sound is played. Only gameplay sounds are affected by PIE pause/stop
-	 * @return ID assigned by ak soundengine
-	 */
-	AkPlayingID PostEventOnActor(
-		const AkUInt32 EventShortID,
-		AActor * Actor,
-		AkUInt32 Flags = 0,
-		AkCallbackFunc Callback = NULL,
-		void * Cookie = NULL,
-		bool bStopWhenOwnerDestroyed = false,
-		const TArray<AkExternalSourceInfo> ExternalSources = TArray<AkExternalSourceInfo>(),
-		EAkAudioContext AudioContext = EAkAudioContext::GameplayAudio
-	);
-
-	/**
-	 * Post an event to ak soundengine by ID
-	 *
-	 * @warning This function is deprecated. You are expected to use an UAkAudioEvent. Please see \ref UAkAudioEvent::PostOnActor.
-	 *
-	 * @param EventShortID		ID of the event to post
-	 * @param Actor				Actor on which to play the event
-	 * @param PostEventCallback	Callback delegate
-	 * @param Flags			Bitmask: see \ref EAkCallbackType
-	 * @param bStopWhenOwnerDestroyed If true, then the sound should be stopped if the owning actor is destroyed
-	 * @param AudioContext Context in which sound is played. Only gameplay sounds are affected by PIE pause/stop
-	 * @return ID assigned by ak soundengine
-	 */
-	AkPlayingID PostEventOnActor(
-		const AkUInt32 EventShortID,
-		AActor * Actor,
-		const FOnAkPostEventCallback& PostEventCallback,
-		AkUInt32 Flags = 0,
-		bool bStopWhenOwnerDestroyed = false,
-		const TArray<AkExternalSourceInfo>& ExternalSources = TArray<AkExternalSourceInfo>(),
-		EAkAudioContext AudioContext = EAkAudioContext::GameplayAudio
-	);
-
-	 /**
-	 * Post an event to ak soundengine by ID
-	 *
-	 * @warning This function is deprecated. You are expected to use an UAkAudioEvent. Please see \ref UAkAudioEvent::PostOnGameObjectID.
-	 *
-	 * @param EventShortID		ID of the event to post
-	 * @param Actor				Actor on which to play the event
-	 * @param Flags				Bitmask: see \ref AkCallbackType
-	 * @param Callback			Callback function
-	 * @param Cookie			Callback cookie that will be sent to the callback function along with additional information.
-	 * @param bStopWhenOwnerDestroyed If true, then the sound should be stopped if the owning actor is destroyed
-	 * @param AudioContext Context in which sound is played. Only gameplay sounds are affected by PIE pause/stop
-	 * @return ID assigned by ak soundengine
-	 */
-	AkPlayingID PostEventOnGameObjectID(
-		const AkUInt32 EventShortID,
-		AkGameObjectID GameObject,
-		AkUInt32 Flags /*= 0*/,
-		AkCallbackFunc Callback /*= NULL*/,
-		void* Cookie,
-		/*= NULL*/ 
-		const TArray<AkExternalSourceInfo>& ExternalSources, /*= TArray<AkExternalSourceInfo>()*/
-		EAkAudioContext AudioContext = EAkAudioContext::GameplayAudio
-	);
-
-	/**
-	 * Post an event to ak soundengine by ID
-	 *
-	 * @warning This function is deprecated. You are expected to use an UAkAudioEvent. Please see \ref UAkAudioEvent::PostOnActor.
-	 *
-	 * @param EventShortID				ID of the event to post
-	 * @param Actor						Actor on which to play the event
-	 * @param bStopWhenOwnerDestroyed	If true, then the sound should be stopped if the owning actor is destroyed
-	 * @param LatentAction				Pointer to a Blueprint latent action.Used in the EndOfEvent callback.
-	 * @param AudioContext Context in which sound is played. Only gameplay sounds are affected by PIE pause/stop
-	 * @return ID assigned by ak soundengine
-	 */
-	AkPlayingID PostEventOnActorWithLatentAction(
-		const AkUInt32 EventShortID,
-		AActor * Actor,
-		bool bStopWhenOwnerDestroyed,
-		FWaitEndOfEventAction* LatentAction,
-		const TArray<AkExternalSourceInfo>& ExternalSources = TArray<AkExternalSourceInfo>(),
-		EAkAudioContext AudioContext = EAkAudioContext::GameplayAudio
-	);
-
-	/**
-	 * Post an event to ak soundengine by name
-	 *
-	 * @warning This function is deprecated. You are expected to use an UAkAudioEvent. Please see \ref UAkAudioEvent::PostOnComponent.
-	 *
-	 * @param EventShortID		ID of the event to post
-	 * @param AkComponent		AkComponent on which to play the event
-	 * @param LatentAction		Pointer to a Blueprint latent action. Used in the EndOfEvent callback.
-	 * @param AudioContext Context in which sound is played. Only gameplay sounds are affected by PIE pause/stop
-	 * @return ID assigned by ak soundengine
-	 */
-	AkPlayingID PostEventOnComponentWithLatentAction(
-		const AkUInt32 EventShortID,
-		UAkComponent* AkComponent,
-		FWaitEndOfEventAction* LatentAction,
-		const TArray<AkExternalSourceInfo>& ExternalSources = TArray<AkExternalSourceInfo>(),
-		EAkAudioContext AudioContext = EAkAudioContext::GameplayAudio
-	);
-
-	/**
-	 * Post an event to ak soundengine by ID
-	 *
-	 * @warning This function is deprecated. You are expected to use an UAkAudioEvent. Please see \ref UAkAudioEvent::PostOnComponent.
-	 *
-	 * @param EventShortID		ID of the event to post
-	 * @param Component			AkComponent on which to play the event
-	 * @param Flags				Bitmask: see \ref AkCallbackType
-	 * @param Callback			Callback function
-	 * @param Cookie			Callback cookie that will be sent to the callback function along with additional information.
-	 * @param AudioContext Context in which sound is played. Only gameplay sounds are affected by PIE pause/stop
-	 * @return ID assigned by ak soundengine
-	 */
-	AkPlayingID PostEventOnAkComponent(
-		const AkUInt32 EventShortID,
-		UAkComponent* Component,
-		AkUInt32 Flags = 0,
-		AkCallbackFunc Callback = NULL,
-		void * Cookie = NULL,
-		const TArray<AkExternalSourceInfo>& ExternalSources = TArray<AkExternalSourceInfo>(),
-		EAkAudioContext AudioContext = EAkAudioContext::GameplayAudio
-	);
-
-	/**
-	 * Post an event to ak soundengine by ID
-	 *
-	 * @warning This function is deprecated. You are expected to use an UAkAudioEvent. Please see \ref UAkAudioEvent::PostOnGameObject.
-	 *
-	 * @param EventShortID		ID of the event to post
-	 * @param AkGameObject		UAkGameObject on which to play the event
-	 * @param PostEventCallback	Callback delegate
-	 * @param Flags				Bitmask: see \ref EAkCallbackType
-	 * @param AudioContext Context in which sound is played. Only gameplay sounds are affected by PIE pause/stop
-	 * @return ID assigned by ak soundengine
-	 */
-	AkPlayingID PostEventOnAkGameObject(
-		const AkUInt32 EventShortID,
-		UAkGameObject* AkGameObject,
-		const FOnAkPostEventCallback& PostEventCallback,
-		AkUInt32 Flags = 0,
-		const TArray<AkExternalSourceInfo>& ExternalSources = TArray<AkExternalSourceInfo>(),
-		EAkAudioContext AudioContext = EAkAudioContext::GameplayAudio
-	);
-
-	/**
-	 * Post an event at location to ak soundengine
-	 *
-	 * @warning This function is deprecated. Please see \ref UAkAudioEvent::PostAtLocation.
-	 *
-	 * @param Event			Event to post
-	 * @param Location		Location at which to play the event
-	 * @param Orientation
-	 * @param World
-	 * @param AudioContext Context in which sound is played. Only gameplay sounds are affected by PIE pause/stop
-	 * @return ID assigned by ak soundengine
-	 */
-	AK_DEPRECATED(2022.1, "Use UAkAudioEvent::PostAtLocation")
-	AkPlayingID PostAkAudioEventAtLocation(
-		UAkAudioEvent* Event,
-		FVector Location,
-		FRotator Orientation,
-		UWorld* World,
-		EAkAudioContext AudioContext = EAkAudioContext::GameplayAudio
-	);
-
-	/**
-	 * Post an event by name at location to ak soundengine
-	 *
-	 * @warning This function is deprecated. You are expected to use an UAkAudioEvent. Please see \ref UAkAudioEvent::PostAtLocation.
-	 *
-	 * @param EventName		Name of the event to post (Used to register the game object)
-	 * @param EventShortID  ID of the event to post
-	 * @param Location		Location at which to play the event
-	 * @param Orientation
-	 * @param World
-	 * @param AudioContext Context in which sound is played. Only gameplay sounds are affected by PIE pause/stop
-	 * @return ID assigned by ak soundengine
-	 */
-	AkPlayingID PostEventAtLocation(
-		const FString& EventName,
-		const AkUInt32 EventShortID,
-		FVector Location,
-		FRotator Orientation,
-		UWorld* World,
-		const TArray<AkExternalSourceInfo>& ExternalSources = TArray<AkExternalSourceInfo>(),
-		EAkAudioContext AudioContext = EAkAudioContext::GameplayAudio
-	);
-
-	/**
-	 * Post an event at location to ak soundengine
-	 *
-	 * @warning This function is deprecated. You are expected to use an UAkAudioEvent. Please see \ref UAkAudioEvent::PostAtLocation.
-	 *			Async operations are deprecated.
-	 *
-	 * @param Event			Event to post
-	 * @param Location		Location at which to play the event
-	 * @param Orientation
-	 * @param World
-	 * @param AudioContext Context in which sound is played. Only gameplay sounds are affected by PIE pause/stop
-	 * @return ID assigned by ak soundengine
-	 */
-	TFuture<AkPlayingID> PostAkAudioEventAtLocationAsync(
-		UAkAudioEvent* Event,
-		FVector Location,
-		FRotator Orientation,
-		UWorld* World,
-		EAkAudioContext AudioContext = EAkAudioContext::GameplayAudio
-	);
-
-	/**
-	 * Wait for event asset to be fully loaded and then post the event to ak soundengine
-	 *
-	 * @warning This function is deprecated. Please see \ref UAkAudioEvent::PostOnActor.
-	 *			Async operations are deprecated.
-	 *
-	 * @param AudioEvent				The event to post
-	 * @param Actor						Actor on which to play the event
-	 * @param PostEventCallback			Callback function
-	 * @param CallbackFlags				Bitmask: see \ref AkCallbackType
-	 * @param bStopWhenOwnerDestroyed   If true, then the sound should be stopped if the owning actor is destroyed
-	 * @param AudioContext Context in which sound is played. Only gameplay sounds are affected by PIE pause/stop
-	 * @return ID assigned by ak soundengine
-	 */
-	TFuture<AkPlayingID> PostAkAudioEventOnActorAsync(
-		class UAkAudioEvent* AudioEvent,
-		AActor* Actor,
-		const FOnAkPostEventCallback& PostEventCallback,
-		AkUInt32 CallbackFlags = 0,
-		bool bStopWhenOwnerDestroyed = false,
-		EAkAudioContext AudioContext = EAkAudioContext::GameplayAudio
-	);
-
-	/**
-	 * Wait for event asset to be fully loaded and then post the event to ak soundengine
-	 *
-	 * @warning This function is deprecated. Please see \ref UAkAudioEvent::PostOnAkGameObject.
-	 *			Async operations are deprecated.
-	 *
-	 * @param AudioEvent		The event to post
-	 * @param GameObject		UAkGameObject on which to play the event
-	 * @param PostEventCallback	Callback delegate
-	 * @param CallbackFlags		Bitmask: see \ref EAkCallbackType
-	 * @param AudioContext Context in which sound is played. Only gameplay sounds are affected by PIE pause/stop
-	 * @return ID assigned by ak soundengine
-	 */
-	TFuture<AkPlayingID> PostAkAudioEventOnAkGameObjectAsync(
-		class UAkAudioEvent* AudioEvent,
-		UAkGameObject* GameObject,
-		const FOnAkPostEventCallback& PostEventCallback,
-		AkUInt32 CallbackFlags = 0,
-		EAkAudioContext AudioContext = EAkAudioContext::GameplayAudio
-	);
-
-	/**
-	 * Post an event to ak soundengine
-	 *
-	 * @warning This function is deprecated. You are expected to use an UAkAudioEvent. Please see \ref UAkAudioEvent::PostOnActor.
-	 *			Async operations are deprecated.
-	 *
-	 * @param AudioEvent				The event to post
-	 * @param Actor						Actor on which to play the event
-	 * @param bStopWhenOwnerDestroyed	If true, then the sound should be stopped if the owning actor is destroyed
-	 * @param LatentAction				Pointer to a Blueprint latent action. Used in the EndOfEvent callback.
-	 * @param AudioContext Context in which sound is played. Only gameplay sounds are affected by PIE pause/stop
-	 * @return ID assigned by ak soundengine
-	 */
-	TFuture<AkPlayingID> PostAkAudioEventWithLatentActionOnActorAsync(
-		class UAkAudioEvent* AudioEvent,
-		AActor* Actor,
-		bool bStopWhenOwnerDestroyed,
-		FWaitEndOfEventAction* LatentAction,
-		EAkAudioContext AudioContext = EAkAudioContext::GameplayAudio
-	);
-
-	/**
-	 * Post an event to ak soundengine
-	 *
-	 * @warning This function is deprecated. You are expected to use an UAkAudioEvent. Please see \ref UAkAudioEvent::PostOnComponent.
-	 *			Async operations are deprecated.
-	 *
-	 * @param AudioEvent				The event to post
-	 * @param AkComponent				AkComponent on which to play the event
-	 * @param bStopWhenOwnerDestroyed	If true, then the sound should be stopped if the owning actor is destroyed
-	 * @param LatentAction				Pointer to a Blueprint latent action.Used in the EndOfEvent callback.
-	 * @param AudioContext Context in which sound is played. Only gameplay sounds are affected by PIE pause/stop
-	 * @return ID assigned by ak soundengine
-	 */
-	TFuture<AkPlayingID> PostAkAudioEventWithLatentActionOnAkComponentAsync(
-		class UAkAudioEvent* AudioEvent,
-		UAkComponent* AkComponent,
-		bool bStopWhenOwnerDestroyed,
-		FWaitEndOfEventAction* LatentAction,
-		EAkAudioContext AudioContext = EAkAudioContext::GameplayAudio
-	);
-
 	/** Spawn an AkComponent at a location. Allows, for example, to set a switch on a fire and forget sound.
 	 * @param AkEvent - Wwise Event to post.
 	 * @param Location - Location from which to post the Wwise Event.
@@ -751,44 +370,6 @@ public:
 	 * @param AutoDestroy - Automatically destroy the AkComponent once the event is finished.
 	 */
 	class UAkComponent* SpawnAkComponentAtLocation( class UAkAudioEvent* AkEvent, FVector Location, FRotator Orientation, bool AutoPost, const FString& EventName, bool AutoDestroy, class UWorld* in_World );
-
-	/**
-	 * Executes an action on all nodes that are referenced in the specified event in an action of type play.
-	 *
-	 * @warning This function is deprecated. You are expected to use an UAkAudioEvent. Please see \ref UAkAudioEvent::ExecuteAction.
-	 *
-	 * @param EventShortID ID of the event to post
-	 * @param ActionType Action to execute on all the elements that were played using the specified event.
-	 * @param Actor Associated actor
-	 * @param TransitionDuration Fade duration
-	 * @param FadeCurve Curve type to be used for the transition
-	 * @param PlayingID Associated PlayingID
-	 */
-	AKRESULT ExecuteActionOnEvent(
-		const AkUInt32 EventShortID,
-		AkActionOnEventType ActionType,
-		AActor* Actor,
-		AkTimeMs TransitionDuration = 0,
-		EAkCurveInterpolation FadeCurve = EAkCurveInterpolation::Linear,
-		AkPlayingID PlayingID = AK_INVALID_PLAYING_ID
-	);
-
-	/**
-	 *
-	 * @warning This function is deprecated. You are expected to use an UAkAudioEvent. Please see \ref UAkAudioEvent::ExecuteAction.
-	 *
-	 * Executes an Action on the content associated to the specified playing ID. 
-	 * @param in_ActionType Action to execute on the specified playing ID.
-	 * @param in_PlayingID Playing ID on which to execute the action.
-	 * @param in_uTransitionDuration Fade duration
-	 * @param in_eFadeCurve Curve type to be used for the transition
-	 */
-	void ExecuteActionOnPlayingID(
-		AkActionOnEventType in_ActionType,
-		AkPlayingID in_PlayingID,
-		AkTimeMs in_uTransitionDuration = 0,
-		EAkCurveInterpolation in_eFadeCuve = EAkCurveInterpolation::Linear
-	);
 
     /** Seek on an event in the ak soundengine.
     * @param EventShortID         ID of the event on which to seek.
@@ -1503,17 +1084,17 @@ public:
 	/**
 	* Set obstruction and occlusion on sounds going through this portal
 	*/
-	AKRESULT SetPortalObstructionAndOcclusion(UAkPortalComponent* in_pPortal, float in_fObstructionValue, float in_fOcclusionValue);
+	AKRESULT SetPortalObstructionAndOcclusion(const UAkPortalComponent* in_pPortal, float in_fObstructionValue, float in_fOcclusionValue);
 
 	/**
 	* Set obstruction on sounds from this game object going through this portal
 	*/
-	AKRESULT SetGameObjectToPortalObstruction(UAkComponent* in_pComponent, UAkPortalComponent* in_pPortal, float in_fObstructionValue);
+	AKRESULT SetGameObjectToPortalObstruction(const UAkComponent* in_pComponent, const UAkPortalComponent* in_pPortal, float in_fObstructionValue);
 
 	/**
 	* Set obstruction on sounds from a first portal going through the next portal
 	*/
-	AKRESULT SetPortalToPortalObstruction(UAkPortalComponent* in_pPortal0, UAkPortalComponent* in_pPortal1, float in_fObstructionValue);
+	AKRESULT SetPortalToPortalObstruction(const UAkPortalComponent* in_pPortal0, const UAkPortalComponent* in_pPortal1, float in_fObstructionValue);
 
 	/** @brief Sets an effect ShareSet on an output device
 	* 
@@ -1846,6 +1427,10 @@ public:
 
 	FAkEnvironmentIndex& GetRoomIndex() { return RoomIndex; }
 
+	void AddPortalConnectionToOutdoors(const UWorld* in_world, UAkPortalComponent* in_pPortal);
+	void RemovePortalConnectionToOutdoors(const UWorld* in_world, AkPortalID in_portalID);
+	void GetObsOccServicePortalMap(const UAkRoomComponent* InRoom, const UWorld* InWorld, AkObstructionAndOcclusionService::PortalMap& OutPortalMap) const;
+
 	struct SetCurrentAudioCultureAsyncTask
 	{
 		enum CompletionType
@@ -1884,27 +1469,18 @@ public:
 	FAkComponentCallbackManager* GetCallbackManager() { return CallbackManager; }
 	AKRESULT RegisterGameObject(AkGameObjectID GameObjectID, const FString& Name);
 
+	/** Determine whether the Wwise sound engine should be updated for the given world type */
+	static bool ShouldNotifySoundEngine(EWorldType::Type WorldType);
+
 	static void LoadAudioObjectsAfterInitialization(TWeakObjectPtr<UAkAudioType>&& InAudioType);
 	void LoadDelayedObjects();
 
 private:
 	bool EnsureInitialized();
-	
-	/** Determine whether the Wwise sound engine should be updated for the given world type */
-	static bool ShouldNotifySoundEngine(EWorldType::Type WorldType);
 
 	void* AllocatePermanentMemory( int32 Size, /*OUT*/ bool& AllocatedInPool );
 	
 	AKRESULT GetGameObjectID(AActor * in_pActor, AkGameObjectID& io_GameObject );
-
-	template<typename FCreateCallbackPackage>
-	AkPlayingID PostEventWithCallbackPackageOnGameObjectId(
-		const AkUInt32 EventShortID,
-		const AkGameObjectID GameObjectID,
-		const TArray<AkExternalSourceInfo>& ExternalSources,
-		FCreateCallbackPackage CreateCallbackPackage,
-		EAkAudioContext AudioContext
-	);
 
 	template<typename FCreateCallbackPackage>
 	AkPlayingID PostEventWithCallbackPackageOnAkGameObject(
@@ -1961,7 +1537,11 @@ private:
 
 	/** We keep track of the portals in each world so their rooms can be updated when room and portal parameters change.
 	*/
-	TMap<UWorld*, TArray<class UAkPortalComponent*>> WorldPortalsMap;
+	TMap<UWorld*, TArray<TWeakObjectPtr<UAkPortalComponent>>> WorldPortalsMap;
+
+	typedef WwiseUnrealHelper::AkSpatialAudioIDKeyFuncs<UAkPortalComponent*, false> PortalComponentSpatialAudioIDKeyFuncs;
+	typedef TMap<AkPortalID, UAkPortalComponent*, FDefaultSetAllocator, PortalComponentSpatialAudioIDKeyFuncs> PortalComponentMap;
+	TMap<const UWorld*, PortalComponentMap> OutdoorsConnectedPortals;
 
 	void CleanupComponentMapsForWorld(UWorld* World);
 

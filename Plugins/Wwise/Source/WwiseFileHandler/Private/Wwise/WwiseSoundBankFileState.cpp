@@ -19,11 +19,13 @@ Copyright (c) 2023 Audiokinetic Inc.
 #include "Wwise/API/WwiseSoundEngineAPI.h"
 #include "Wwise/Stats/FileHandler.h"
 #include "Wwise/Stats/FileHandlerMemory.h"
-#include "AkUnrealHelper.h"
+#include "WwiseUnrealHelper.h"
 #include "Async/MappedFileHandle.h"
 #include "Async/Async.h"
 
 #include <inttypes.h>
+
+#include "Wwise/WwiseSoundEngineUtils.h"
 
 FWwiseSoundBankFileState::FWwiseSoundBankFileState(const FWwiseSoundBankCookedData& InCookedData, const FString& InRootPath):
 	FWwiseSoundBankCookedData(InCookedData),
@@ -135,7 +137,7 @@ void FWwiseInMemorySoundBankFileState::LoadInSoundEngine(FLoadInSoundEngineCallb
 	UE_CLOG(UNLIKELY(LoadedSoundBankType != static_cast<uint8>(SoundBankType)), LogWwiseFileHandler, Error, TEXT("FWwiseInMemorySoundBankFileState::LoadInSoundEngine %" PRIu32 " (%s): Incorrect SoundBank type: %" PRIu8 " expected %" PRIu8), SoundBankId, *DebugName.ToString(), (uint8)LoadedSoundBankType, (uint8)SoundBankType);
 	if(LoadResult != AK_Success)
 	{
-		UE_LOG(LogWwiseFileHandler, Error, TEXT("FWwiseInMemorySoundBankFileState::LoadInSoundEngine %" PRIu32 " (%s): Failed to load SoundBank: %d (%s)."), SoundBankId, *DebugName.ToString(), LoadResult, AkUnrealHelper::GetResultString(LoadResult));
+		UE_LOG(LogWwiseFileHandler, Error, TEXT("FWwiseInMemorySoundBankFileState::LoadInSoundEngine %" PRIu32 " (%s): Failed to load SoundBank: %d (%s)."), SoundBankId, *DebugName.ToString(), LoadResult, WwiseUnrealHelper::GetResultString(LoadResult));
 		auto Callback = MoveTemp(Cookie->Callback);
 		delete Cookie;
 		LoadInSoundEngineFailed(MoveTemp(Callback));
@@ -165,7 +167,7 @@ void FWwiseInMemorySoundBankFileState::UnloadFromSoundEngine(FUnloadFromSoundEng
 	const auto Result = SoundEngine->UnloadBank(SoundBankId, Ptr, &FWwiseInMemorySoundBankFileState::BankUnloadCallback, Cookie, static_cast<AkBankType>(SoundBankType));
 	if(Result != AK_Success)
 	{
-		UE_LOG(LogWwiseFileHandler, Log, TEXT("FWwiseInMemorySoundBankFileState::UnloadFromSoundEngine %" PRIu32 " (%s): Call to SoundEngine failed with result %s"), SoundBankId, *DebugName.ToString(), AkUnrealHelper::GetResultString(Result));
+		UE_LOG(LogWwiseFileHandler, Log, TEXT("FWwiseInMemorySoundBankFileState::UnloadFromSoundEngine %" PRIu32 " (%s): Call to SoundEngine failed with result %s"), SoundBankId, *DebugName.ToString(), WwiseUnrealHelper::GetResultString(Result));
 		auto Callback = MoveTemp(Cookie->Callback);
 		delete Cookie;
 		UnloadFromSoundEngineToClosedFile(MoveTemp(Callback));
@@ -250,17 +252,16 @@ void FWwiseInMemorySoundBankFileState::BankLoadCallback(
 	UE_LOG(LogWwiseFileHandler, VeryVerbose, TEXT("FWwiseInMemorySoundBankFileState::BankLoadCallback %p: Cookie %p."), ((BankLoadCookie*)InCookie)->BankFileState, InCookie);
 	if (!InCookie)
 	{
-		UE_LOG(LogWwiseFileHandler, Error, TEXT("FWwiseInMemorySoundBankFileState::BankLoadCallback %" PRIu32 " (%s): Failed to load SoundBank: %d. Cookie given by SoundEngine is invalid."), InBankID, InLoadResult, AkUnrealHelper::GetResultString(InLoadResult));
+		UE_LOG(LogWwiseFileHandler, Error, TEXT("FWwiseInMemorySoundBankFileState::BankLoadCallback %" PRIu32 " (%s): Failed to load SoundBank: %d. Cookie given by SoundEngine is invalid."), InBankID, InLoadResult, WwiseUnrealHelper::GetResultString(InLoadResult));
 		return;
 	}
 
-	AsyncTask(ENamedThreads::AnyThread, [=]() {
-		SCOPED_WWISEFILEHANDLER_EVENT_3(TEXT("FWwiseInMemorySoundBankFileState::BankLoadCallback Async"));
+	LaunchWwiseTask(WWISEFILEHANDLER_ASYNC_NAME("FWwiseInMemorySoundBankFileState::BankLoadCallback Async"), [=]() {
 		BankLoadCookie Cookie((BankLoadCookie*)InCookie);
 		delete (BankLoadCookie*)InCookie;
 		if (!Cookie.BankFileState)
 		{
-			UE_LOG(LogWwiseFileHandler, Error, TEXT("FWwiseInMemorySoundBankFileState::BankLoadCallback %" PRIu32 " (%s): Failed to load SoundBank: %d. Cookie given by SoundEngine is invalid."), InBankID, InLoadResult, AkUnrealHelper::GetResultString(InLoadResult));
+			UE_LOG(LogWwiseFileHandler, Error, TEXT("FWwiseInMemorySoundBankFileState::BankLoadCallback %" PRIu32 " (%s): Failed to load SoundBank: %d. Cookie given by SoundEngine is invalid."), InBankID, InLoadResult, WwiseUnrealHelper::GetResultString(InLoadResult));
 			return;
 		}
 
@@ -275,10 +276,10 @@ void FWwiseInMemorySoundBankFileState::BankLoadCallback(
 		}
 		else
 		{
-			UE_LOG(LogWwiseFileHandler, Error, TEXT("FWwiseInMemorySoundBankFileState::BankLoadCallback %" PRIu32 " (%s): Failed to load SoundBank: %d (%s)."), InBankID, *BankFileState->DebugName.ToString(), InLoadResult, AkUnrealHelper::GetResultString(InLoadResult));
+			UE_LOG(LogWwiseFileHandler, Error, TEXT("FWwiseInMemorySoundBankFileState::BankLoadCallback %" PRIu32 " (%s): Failed to load SoundBank: %d (%s)."), InBankID, *BankFileState->DebugName.ToString(), InLoadResult, WwiseUnrealHelper::GetResultString(InLoadResult));
 			BankFileState->FreeMemoryIfNeeded();
 			BankFileState->LoadInSoundEngineFailed([]{});
-			Cookie.BankFileState->FileStateExecutionQueue->Async([Cookie = MoveTemp(Cookie)]() mutable
+			Cookie.BankFileState->FileStateExecutionQueue->Async(WWISEFILEHANDLER_ASYNC_NAME("FWwiseInMemorySoundBankFileState::BankLoadCallback Cookie"), [Cookie = MoveTemp(Cookie)]() mutable
 			{
 				Cookie.Callback();
 			});
@@ -319,7 +320,7 @@ void FWwiseInMemorySoundBankFileState::BankUnloadCallback(
 		}
 		else
 		{
-			UE_CLOG(InUnloadResult != AK_Success, LogWwiseFileHandler, Error, TEXT("FWwiseInMemorySoundBankFileState::BankUnloadCallback %" PRIu32 " (%s): UnloadBank failed: %d (%s)"), InBankID, *BankFileState->DebugName.ToString(), InUnloadResult, AkUnrealHelper::GetResultString(InUnloadResult));
+			UE_CLOG(InUnloadResult != AK_Success, LogWwiseFileHandler, Error, TEXT("FWwiseInMemorySoundBankFileState::BankUnloadCallback %" PRIu32 " (%s): UnloadBank failed: %d (%s)"), InBankID, *BankFileState->DebugName.ToString(), InUnloadResult, WwiseUnrealHelper::GetResultString(InUnloadResult));
 			DEC_DWORD_STAT(STAT_WwiseFileHandlerLoadedSoundBanks);
 			if (InMemoryBankPtr)
 			{

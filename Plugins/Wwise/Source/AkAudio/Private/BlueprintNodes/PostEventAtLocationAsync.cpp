@@ -17,6 +17,7 @@ Copyright (c) 2023 Audiokinetic Inc.
 
 #include "BlueprintNodes/PostEventAtLocationAsync.h"
 
+#include "AkAudioEvent.h"
 #include "AkGameplayTypes.h"
 #include "TimerManager.h"
 
@@ -42,7 +43,7 @@ void UPostEventAtLocationAsync::Activate()
 	AkDeviceAndWorld DeviceAndWorld(WorldContextObject);
 	if (DeviceAndWorld.IsValid())
 	{
-		playingIDFuture = DeviceAndWorld.AkAudioDevice->PostAkAudioEventAtLocationAsync(AkEvent, Location, Orientation, DeviceAndWorld.CurrentWorld);
+		AkEvent->PostAtLocation(Location, Orientation, {}, 0, WorldContextObject);
 
 		WorldContextObject->GetWorld()->GetTimerManager().SetTimer(Timer, this, &UPostEventAtLocationAsync::PollPostEventFuture, 1.f / 60.f, true);
 	}

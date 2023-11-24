@@ -35,12 +35,16 @@ UAssetDataSourceInformation FUAssetDataSource::CreateUAssetInfo(const UAssetData
 bool FUAssetDataSource::GuidExistsInProjectDatabase(const FGuid ItemId, EWwiseItemType::Type Type)
 {
 	auto* ProjectDatabase = FWwiseProjectDatabase::Get();
-	const FWwiseDataStructureScopeLock DataStructure(*ProjectDatabase);
-	const FWwiseRefPlatform Platform = DataStructure.GetPlatform(ProjectDatabase->GetCurrentPlatform());
-	const auto* PlatformData = DataStructure.GetCurrentPlatformData();
+	if(ProjectDatabase)
+	{
+		const FWwiseDataStructureScopeLock DataStructure(*ProjectDatabase);
+		const FWwiseRefPlatform Platform = DataStructure.GetPlatform(ProjectDatabase->GetCurrentPlatform());
+		const auto* PlatformData = DataStructure.GetCurrentPlatformData();
 
-	FWwiseDatabaseLocalizableGuidKey Key = FWwiseDatabaseLocalizableGuidKey(ItemId, DataStructure.GetCurrentLanguage().GetLanguageId());
-	return PlatformData->Guids.Find(Key) != nullptr;
+		FWwiseDatabaseLocalizableGuidKey Key = FWwiseDatabaseLocalizableGuidKey(ItemId, DataStructure.GetCurrentLanguage().GetLanguageId());
+		return PlatformData->Guids.Find(Key) != nullptr;
+	}
+	return false;
 }
 
 void FUAssetDataSource::ConstructItems()
@@ -223,16 +227,16 @@ void FUAssetDataSource::GetAssetsInfo(FGuid ItemId, uint32 ShortId, FString Name
 	OrphanedItems.Remove(FoundKey);
 }
 
-void FUAssetDataSource::GetOrphanAssets(TMap<FGuid, UAssetDataSourceInformation>& OrphanAssets) const
+void FUAssetDataSource::GetOrphanAssets(TArray<UAssetDataSourceInformation>& OrphanAssets) const
 {
-	OrphanAssets = OrphanedItems;
+	OrphanedItems.GenerateValueArray(OrphanAssets);
 	for(auto ShortIdItem : UAssetWithoutGuid)
 	{
-		OrphanAssets.Add(FGuid(), ShortIdItem.Value);
+		OrphanAssets.Add(ShortIdItem.Value);
 	}
 
 	for(auto NameItem : UAssetWithoutShortId)
 	{
-		OrphanAssets.Add(FGuid(), NameItem.Value);
+		OrphanAssets.Add(NameItem.Value);
 	}
 }

@@ -95,7 +95,7 @@ void AkSSlider::Construct(const AkSSlider::FArguments& InDeclaration)
 		];
 }
 
-TSharedPtr<SSlider> AkSSlider::GetAkSilder() const
+TSharedPtr<SSlider> AkSSlider::GetAkSlider() const
 {
 	return AkScrubberSSlider;
 }

@@ -36,6 +36,7 @@ Copyright (c) 2023 Audiokinetic Inc.
 #include "Wwise/Stats/AkAudioMemory.h"
 #include "Wwise/Stats/AsyncStats.h"
 #include "Wwise/WwiseGlobalCallbacks.h"
+#include "WwiseDefines.h"
 
 namespace AkInitializationSettings_Helpers
 {
@@ -129,7 +130,9 @@ FAkInitializationStructure::FAkInitializationStructure()
 	StreamMgr->GetDefaultSettings(StreamManagerSettings);
 
 	StreamMgr->GetDefaultDeviceSettings(DeviceSettings);
+#if !WWISE_2023_1_OR_LATER
 	DeviceSettings.uSchedulerTypeFlags = AK_SCHEDULER_DEFERRED_LINED_UP;
+#endif
 	DeviceSettings.uMaxConcurrentIO = AK_UNREAL_MAX_CONCURRENT_IO;
 
 	SoundEngine->GetDefaultInitSettings(InitSettings);
@@ -243,6 +246,9 @@ void FAkSpatialAudioSettings::FillInitializationStructure(FAkInitializationStruc
 	SpatialAudioInitSettings.uNumberOfPrimaryRays = NumberOfPrimaryRays;
 	SpatialAudioInitSettings.uMaxReflectionOrder = ReflectionOrder;
 	SpatialAudioInitSettings.uMaxDiffractionOrder = DiffractionOrder;
+#if WWISE_2023_1_OR_LATER
+	SpatialAudioInitSettings.uMaxEmitterRoomAuxSends = MaxEmitterRoomAuxSends;
+#endif
 	SpatialAudioInitSettings.uDiffractionOnReflectionsOrder = DiffractionOnReflectionsOrder;
 	SpatialAudioInitSettings.fMaxPathLength = MaximumPathLength;
 	SpatialAudioInitSettings.fCPULimitPercentage = CPULimitPercentage;
@@ -257,14 +263,14 @@ void FAkSpatialAudioSettings::FillInitializationStructure(FAkInitializationStruc
 
 void FAkCommunicationSettings::FillInitializationStructure(FAkInitializationStructure& InitializationStructure) const
 {
-#ifndef AK_OPTIMIZED
+#if AK_ENABLE_COMMUNICATION
 	auto& CommSettings = InitializationStructure.CommSettings;
 	CommSettings.ports.uDiscoveryBroadcast = DiscoveryBroadcastPort;
 	CommSettings.ports.uCommand = CommandPort;
 
 	const FString GameName = GetCommsNetworkName();
 	FCStringAnsi::Strcpy(CommSettings.szAppNetworkName, AK_COMM_SETTINGS_MAX_STRING_SIZE, TCHAR_TO_ANSI(*GameName));
-#endif // AK_OPTIMIZED
+#endif
 }
 
 FString FAkCommunicationSettings::GetCommsNetworkName() const

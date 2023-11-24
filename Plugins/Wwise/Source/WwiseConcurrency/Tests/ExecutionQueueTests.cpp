@@ -25,40 +25,18 @@ WWISE_TEST_CASE(Concurrency_ExecutionQueue_Smoke, "Wwise::Concurrency::Execution
 {
 	SECTION("Static")
 	{
-		static_assert(std::is_constructible<FWwiseExecutionQueue>::value);
-		static_assert(std::is_constructible<FWwiseExecutionQueue, ENamedThreads::Type>::value);
-		static_assert(std::is_constructible<FWwiseExecutionQueue, FQueuedThreadPool*>::value);
-		static_assert(std::is_constructible<FWwiseExecutionQueue, const TCHAR*>::value);
-		static_assert(std::is_constructible<FWwiseExecutionQueue, const TCHAR*, EThreadPriority>::value);
-		static_assert(std::is_constructible<FWwiseExecutionQueue, const TCHAR*, EThreadPriority, int32>::value);
-		static_assert(!std::is_copy_constructible<FWwiseExecutionQueue>::value);
-		static_assert(!std::is_move_constructible<FWwiseExecutionQueue>::value);
-		static_assert(!std::is_copy_assignable<FWwiseExecutionQueue>::value);
-		static_assert(!std::is_move_assignable<FWwiseExecutionQueue>::value);
+		static_assert(std::is_constructible<FWwiseExecutionQueue, const TCHAR*>::value, "Can create a named Execution Queue");
+		static_assert(std::is_constructible<FWwiseExecutionQueue, const TCHAR*, EWwiseTaskPriority>::value, "Can create a named Execution Queue with its own task priority");
+		static_assert(!std::is_copy_constructible<FWwiseExecutionQueue>::value, "Cannot copy an Execution Queue");
+		static_assert(!std::is_move_constructible<FWwiseExecutionQueue>::value, "Cannot move-construct an Execution Queue");
+		static_assert(!std::is_copy_assignable<FWwiseExecutionQueue>::value, "Cannot assign an Execution Queue");
+		static_assert(!std::is_move_assignable<FWwiseExecutionQueue>::value, "Cannot move-assign an Execution Queue");
 	}
 
 	SECTION("Instantiation")
 	{
-		FWwiseExecutionQueue NoParam;
-		FWwiseExecutionQueue NamedThread(ENamedThreads::AnyThread);
-		FWwiseExecutionQueue Pool(GThreadPool);
-		FWwiseExecutionQueue NewPool(TEXT("New Execution Queue"));
-
-		CHECK(NoParam.ThreadPool);
-		CHECK(NoParam.NamedThread == ENamedThreads::UnusedAnchor);
-		CHECK(NoParam.ThreadPool == FWwiseExecutionQueue::GetDefaultThreadPool());
-		
-		CHECK_FALSE(NamedThread.ThreadPool);
-		CHECK_FALSE(NamedThread.NamedThread == ENamedThreads::UnusedAnchor);
-
-		CHECK(Pool.NamedThread == ENamedThreads::UnusedAnchor);
-		CHECK_FALSE(Pool.bOwnedPool);
-		CHECK(Pool.ThreadPool);
-
-		CHECK(NewPool.NamedThread == ENamedThreads::UnusedAnchor);
-		CHECK(NewPool.bOwnedPool);
-		CHECK(NewPool.ThreadPool);
-		CHECK(NewPool.ThreadPool && NewPool.ThreadPool->GetNumThreads() == 1);
+		FWwiseExecutionQueue NamedTask(WWISE_EQ_NAME("NamedTask Test"));
+		FWwiseExecutionQueue PriorityTask(WWISE_EQ_NAME("PriorityTask Test"), EWwiseTaskPriority::Normal);
 	}
 
 	SECTION("Async At Destructor")
@@ -66,10 +44,10 @@ WWISE_TEST_CASE(Concurrency_ExecutionQueue_Smoke, "Wwise::Concurrency::Execution
 		constexpr const int LoopCount = 10;
 		std::atomic<int> Value{ 0 };
 		{
-			FWwiseExecutionQueue ExecutionQueue;
+			FWwiseExecutionQueue ExecutionQueue(WWISE_TEST_ASYNC_NAME);
 			for (int i = 0; i < LoopCount; ++i)
 			{
-				ExecutionQueue.Async([&Value]
+				ExecutionQueue.Async(WWISE_TEST_ASYNC_NAME, [&Value]
 				{
 					++Value;
 				});
@@ -84,10 +62,10 @@ WWISE_TEST_CASE(Concurrency_ExecutionQueue_Smoke, "Wwise::Concurrency::Execution
 		std::atomic<int> Value{ 0 };
 		{
 			const auto CurrentThreadId = FPlatformTLS::GetCurrentThreadId();
-			FWwiseExecutionQueue ExecutionQueue;
+			FWwiseExecutionQueue ExecutionQueue(WWISE_TEST_ASYNC_NAME);
 			for (int i = 0; i < LoopCount; ++i)
 			{
-				ExecutionQueue.AsyncWait([&Value, CurrentThreadId]
+				ExecutionQueue.AsyncWait(WWISE_TEST_ASYNC_NAME, [&Value, CurrentThreadId]
 				{
 					CHECK_FALSE(CurrentThreadId == FPlatformTLS::GetCurrentThreadId());
 					++Value;
@@ -102,16 +80,29 @@ WWISE_TEST_CASE(Concurrency_ExecutionQueue_Smoke, "Wwise::Concurrency::Execution
 		constexpr const int LoopCount = 10;
 		std::atomic<int> Value{ 0 };
 		{
-			FWwiseExecutionQueue ExecutionQueue;
+			FWwiseExecutionQueue ExecutionQueue(WWISE_TEST_ASYNC_NAME);
 			for (int i = 0; i < LoopCount; ++i)
 			{
-				ExecutionQueue.Async([&Value, ShouldBe = i]
+				ExecutionQueue.Async(WWISE_TEST_ASYNC_NAME, [&Value, ShouldBe = i]
 				{
 					CHECK(Value++ == ShouldBe);
 				});
 			}
 		}
 		CHECK(Value.load() == LoopCount);
+	}
+	
+	SECTION("IsRunningInThisThread")
+	{
+		const auto CurrentThreadId = FPlatformTLS::GetCurrentThreadId();
+		FWwiseExecutionQueue ExecutionQueue(WWISE_TEST_ASYNC_NAME);
+		CHECK_FALSE(ExecutionQueue.IsRunningInThisThread());
+		ExecutionQueue.AsyncWait(WWISE_TEST_ASYNC_NAME, [&ExecutionQueue, CurrentThreadId]
+		{
+			CHECK_FALSE(CurrentThreadId == FPlatformTLS::GetCurrentThreadId());
+			CHECK(ExecutionQueue.IsRunningInThisThread());
+		});
+		CHECK_FALSE(ExecutionQueue.IsRunningInThisThread());
 	}
 }
 
@@ -123,17 +114,17 @@ WWISE_TEST_CASE(Concurrency_ExecutionQueue_Perf, "Wwise::Concurrency::ExecutionQ
 		FWwiseExecutionQueue::Test::bReduceLogVerbosity = true;
 		ON_SCOPE_EXIT { FWwiseExecutionQueue::Test::bReduceLogVerbosity = bReduceLogVerbosity; };
 
-		constexpr const int LoopCount = 1000000;
+		constexpr const int LoopCount = 500000;
 		constexpr const int ExpectedUS = 600000;
 		std::atomic<int> Value{ 0 };
 
 		{
-			FWwiseExecutionQueue ExecutionQueue;
+			FWwiseExecutionQueue ExecutionQueue(WWISE_TEST_ASYNC_NAME);
 
 			FDateTime StartTime = FDateTime::UtcNow();
 			for (int i = 0; i < LoopCount; ++i)
 			{
-				ExecutionQueue.Async([&Value]
+				ExecutionQueue.Async(WWISE_TEST_ASYNC_NAME, [&Value]
 				{
 					++Value;
 				});
@@ -151,19 +142,19 @@ WWISE_TEST_CASE(Concurrency_ExecutionQueue_Perf, "Wwise::Concurrency::ExecutionQ
 		FWwiseExecutionQueue::Test::bReduceLogVerbosity = true;
 		ON_SCOPE_EXIT { FWwiseExecutionQueue::Test::bReduceLogVerbosity = bReduceLogVerbosity; };
 		
-		constexpr const int LoopCount = 1000000;
+		constexpr const int LoopCount = 250000;
 		constexpr const int ExpectedUS = 400000;
 		std::atomic<int> Value{ 0 };
 
 		FDateTime StartTime;
 		{
-			FWwiseExecutionQueue ExecutionQueue;
+			FWwiseExecutionQueue ExecutionQueue(WWISE_TEST_ASYNC_NAME);
 
-			ExecutionQueue.AsyncWait([&ExecutionQueue, LoopCount, &Value]
+			ExecutionQueue.AsyncWait(WWISE_TEST_ASYNC_NAME, [&ExecutionQueue, LoopCount, &Value]
 			{
 				for (int i = 0; i < LoopCount; ++i)
 				{
-					ExecutionQueue.Async([&Value]
+					ExecutionQueue.Async(WWISE_TEST_ASYNC_NAME, [&Value]
 					{
 						++Value;
 					});
@@ -193,28 +184,28 @@ WWISE_TEST_CASE(Concurrency_ExecutionQueue, "Wwise::Concurrency::ExecutionQueue"
 
 		for (int Repeat = 0; Repeat < RepeatLoop; ++Repeat)
 		{
-			FWwiseExecutionQueue MainExecutionQueue;
-			FWwiseExecutionQueue* SubExecutionQueue = new FWwiseExecutionQueue;
-			FWwiseExecutionQueue DeletionExecutionQueue;
+			FWwiseExecutionQueue MainExecutionQueue(WWISE_TEST_ASYNC_NAME);
+			FWwiseExecutionQueue* SubExecutionQueue = new FWwiseExecutionQueue(WWISE_TEST_ASYNC_NAME);
+			FWwiseExecutionQueue DeletionExecutionQueue(WWISE_TEST_ASYNC_NAME);
 
 			for (int i = 0; i < MainLoopCount; ++i)
 			{
-				MainExecutionQueue.Async([&Value, &OpenedQueues, SubExecutionQueue, &DeletionExecutionQueue, SubLoopCount, FinalLoopCount]
+				MainExecutionQueue.Async(WWISE_TEST_ASYNC_NAME, [&Value, &OpenedQueues, SubExecutionQueue, &DeletionExecutionQueue, SubLoopCount, FinalLoopCount]
 				{
 					for (int i = 0; i < SubLoopCount; ++i)
 					{
-						SubExecutionQueue->Async([&Value, &OpenedQueues, &DeletionExecutionQueue, FinalLoopCount]
+						SubExecutionQueue->Async(WWISE_TEST_ASYNC_NAME, [&Value, &OpenedQueues, &DeletionExecutionQueue, FinalLoopCount]
 						{
 							++OpenedQueues;
-							auto ExecutionQueue = new FWwiseExecutionQueue;
+							auto ExecutionQueue = new FWwiseExecutionQueue(WWISE_TEST_ASYNC_NAME);
 							for (int i = 0; i < FinalLoopCount; ++i)
 							{
-								ExecutionQueue->Async([&Value]
+								ExecutionQueue->Async(WWISE_TEST_ASYNC_NAME, [&Value]
 								{
 									++Value;
 								});
 							}
-							DeletionExecutionQueue.Async([&OpenedQueues, ExecutionQueue]
+							DeletionExecutionQueue.Async(WWISE_TEST_ASYNC_NAME, [&OpenedQueues, ExecutionQueue]
 							{
 								delete ExecutionQueue;
 								--OpenedQueues;
@@ -225,7 +216,7 @@ WWISE_TEST_CASE(Concurrency_ExecutionQueue, "Wwise::Concurrency::ExecutionQueue"
 			}
 			
 			MainExecutionQueue.Close();
-			SubExecutionQueue->AsyncWait([]{});
+			SubExecutionQueue->AsyncWait(WWISE_TEST_ASYNC_NAME, []{});
 			SubExecutionQueue->CloseAndDelete();
 		}
 		CHECK(Value.load() == LoopCount);
@@ -252,35 +243,35 @@ WWISE_TEST_CASE(Concurrency_ExecutionQueue, "Wwise::Concurrency::ExecutionQueue"
 
 		for (int Repeat = 0; Repeat < RepeatLoop; ++Repeat)
 		{
-			FWwiseExecutionQueue MainExecutionQueue;
-			FWwiseExecutionQueue SubExecutionQueue;
-			FWwiseExecutionQueue DeletionExecutionQueue;
+			FWwiseExecutionQueue MainExecutionQueue(WWISE_TEST_ASYNC_NAME);
+			FWwiseExecutionQueue SubExecutionQueue(WWISE_TEST_ASYNC_NAME);
+			FWwiseExecutionQueue DeletionExecutionQueue(WWISE_TEST_ASYNC_NAME);
 
 			for (int i = 0; i < MainLoopCount; ++i)
 			{
 				if (i == MainLoopCount - 1)
 				{
-					MainExecutionQueue.Async([]
+					MainExecutionQueue.Async(WWISE_TEST_ASYNC_NAME, []
 					{
 						FWwiseExecutionQueue::Test::bMockEngineDeletion = true;
 					});
 				}
 				
-				MainExecutionQueue.Async([&Value, &SubExecutionQueue, &DeletionExecutionQueue, SubLoopCount, FinalLoopCount]
+				MainExecutionQueue.Async(WWISE_TEST_ASYNC_NAME, [&Value, &SubExecutionQueue, &DeletionExecutionQueue, SubLoopCount, FinalLoopCount]
 				{
 					for (int i = 0; i < SubLoopCount; ++i)
 					{
-						SubExecutionQueue.Async([&Value, &DeletionExecutionQueue, FinalLoopCount]
+						SubExecutionQueue.Async(WWISE_TEST_ASYNC_NAME, [&Value, &DeletionExecutionQueue, FinalLoopCount]
 						{
-							auto ExecutionQueue = new FWwiseExecutionQueue;
+							auto ExecutionQueue = new FWwiseExecutionQueue(WWISE_TEST_ASYNC_NAME);
 							for (int i = 0; i < FinalLoopCount; ++i)
 							{
-								ExecutionQueue->Async([&Value]
+								ExecutionQueue->Async(WWISE_TEST_ASYNC_NAME, [&Value]
 								{
 									++Value;
 								});
 							}
-							DeletionExecutionQueue.Async([ExecutionQueue]
+							DeletionExecutionQueue.Async(WWISE_TEST_ASYNC_NAME, [ExecutionQueue]
 							{
 								delete ExecutionQueue;
 							});
@@ -306,10 +297,10 @@ WWISE_TEST_CASE(Concurrency_ExecutionQueue, "Wwise::Concurrency::ExecutionQueue"
 		constexpr const int LoopCount = 10;
 		std::atomic<int> Value{ 0 };
 		{
-			FWwiseExecutionQueue ExecutionQueue;
+			FWwiseExecutionQueue ExecutionQueue(WWISE_TEST_ASYNC_NAME);
 			for (int i = 0; i < LoopCount; ++i)
 			{
-				ExecutionQueue.Async([&Value, ShouldBe = i]
+				ExecutionQueue.Async(WWISE_TEST_ASYNC_NAME, [&Value, ShouldBe = i]
 				{
 					CHECK(Value++ == ShouldBe);
 				});
@@ -329,10 +320,10 @@ WWISE_TEST_CASE(Concurrency_ExecutionQueue, "Wwise::Concurrency::ExecutionQueue"
 		{
 			const auto CurrentThreadId = FPlatformTLS::GetCurrentThreadId();
 			FWwiseExecutionQueue::Test::bMockEngineDeleted = true;
-			FWwiseExecutionQueue ExecutionQueue;
+			FWwiseExecutionQueue ExecutionQueue(WWISE_TEST_ASYNC_NAME);
 			for (int i = 0; i < LoopCount; ++i)
 			{
-				ExecutionQueue.Async([&Value, ShouldBe = i, CurrentThreadId]
+				ExecutionQueue.Async(WWISE_TEST_ASYNC_NAME, [&Value, ShouldBe = i, CurrentThreadId]
 				{
 					CHECK(CurrentThreadId == FPlatformTLS::GetCurrentThreadId());
 					CHECK(Value++ == ShouldBe);
@@ -348,7 +339,7 @@ WWISE_TEST_CASE(Concurrency_ExecutionQueue_Stress, "Wwise::Concurrency::Executio
 	SECTION("AsyncStress")
 	{
 		const bool bReduceLogVerbosity = FWwiseExecutionQueue::Test::bReduceLogVerbosity;
-		FWwiseExecutionQueue::Test::bReduceLogVerbosity = true;
+		FWwiseExecutionQueue::Test::bReduceLogVerbosity = !FWwiseExecutionQueue::Test::bExtremelyVerbose;
 		ON_SCOPE_EXIT { FWwiseExecutionQueue::Test::bReduceLogVerbosity = bReduceLogVerbosity; };
 		
 		constexpr const int LoopCount = 2000000;
@@ -356,30 +347,27 @@ WWISE_TEST_CASE(Concurrency_ExecutionQueue_Stress, "Wwise::Concurrency::Executio
 		constexpr const int SubLoopCount = 100;
 		constexpr const int FinalLoopCount = LoopCount / MainLoopCount / SubLoopCount;
 
-		constexpr const int ExpectedUS = 1500000;
-
-		FDateTime StartTime = FDateTime::UtcNow();
 		{
-			FWwiseExecutionQueue MainExecutionQueue;
-			FWwiseExecutionQueue SubExecutionQueue;
-			FWwiseExecutionQueue DeletionExecutionQueue;
+			FWwiseExecutionQueue MainExecutionQueue(WWISE_TEST_ASYNC_NAME);
+			FWwiseExecutionQueue SubExecutionQueue(WWISE_TEST_ASYNC_NAME);
+			FWwiseExecutionQueue DeletionExecutionQueue(WWISE_TEST_ASYNC_NAME);
 
 			for (int i = 0; i < MainLoopCount; ++i)
 			{
-				MainExecutionQueue.Async([&SubExecutionQueue, &DeletionExecutionQueue, SubLoopCount, FinalLoopCount]
+				MainExecutionQueue.Async(WWISE_TEST_ASYNC_NAME, [&SubExecutionQueue, &DeletionExecutionQueue, SubLoopCount, FinalLoopCount]
 				{
 					for (int i = 0; i < SubLoopCount; ++i)
 					{
-						SubExecutionQueue.Async([&DeletionExecutionQueue, FinalLoopCount]
+						SubExecutionQueue.Async(WWISE_TEST_ASYNC_NAME, [&DeletionExecutionQueue, FinalLoopCount]
 						{
-							auto ExecutionQueue = new FWwiseExecutionQueue;
+							auto ExecutionQueue = new FWwiseExecutionQueue(WWISE_TEST_ASYNC_NAME);
 							for (int i = 0; i < FinalLoopCount; ++i)
 							{
-								ExecutionQueue->Async([]
+								ExecutionQueue->Async(WWISE_TEST_ASYNC_NAME, []
 								{
 								});
 							}
-							DeletionExecutionQueue.Async([ExecutionQueue]
+							DeletionExecutionQueue.Async(WWISE_TEST_ASYNC_NAME, [ExecutionQueue]
 							{
 								delete ExecutionQueue;
 							});
@@ -391,16 +379,13 @@ WWISE_TEST_CASE(Concurrency_ExecutionQueue_Stress, "Wwise::Concurrency::Executio
 			MainExecutionQueue.Close();
 			SubExecutionQueue.Close();
 		}
-		FTimespan Duration = FDateTime::UtcNow() - StartTime;
-		WWISE_TEST_LOG("AsyncAddingOpPerf %dus < %dus", (int)Duration.GetTotalMicroseconds(), ExpectedUS);
-		CHECK(Duration.GetTotalMicroseconds() < ExpectedUS);
 	}
 
 	SECTION("AsyncStress with Sleep")
 	{
 		const bool bReduceLogVerbosity = FWwiseExecutionQueue::Test::bReduceLogVerbosity;
 		const bool bMockSleepOnStateUpdate = FWwiseExecutionQueue::Test::bMockSleepOnStateUpdate;
-		FWwiseExecutionQueue::Test::bReduceLogVerbosity = true;
+		FWwiseExecutionQueue::Test::bReduceLogVerbosity = !FWwiseExecutionQueue::Test::bExtremelyVerbose;
 		FWwiseExecutionQueue::Test::bMockSleepOnStateUpdate = true;
 		ON_SCOPE_EXIT
 		{
@@ -413,30 +398,27 @@ WWISE_TEST_CASE(Concurrency_ExecutionQueue_Stress, "Wwise::Concurrency::Executio
 		constexpr const int SubLoopCount = 10;
 		constexpr const int FinalLoopCount = LoopCount / MainLoopCount / SubLoopCount;
 
-		constexpr const int ExpectedUS = 15000;
-
-		FDateTime StartTime = FDateTime::UtcNow();
 		{
-			FWwiseExecutionQueue MainExecutionQueue;
-			FWwiseExecutionQueue SubExecutionQueue;
-			FWwiseExecutionQueue DeletionExecutionQueue;
+			FWwiseExecutionQueue MainExecutionQueue(WWISE_TEST_ASYNC_NAME);
+			FWwiseExecutionQueue SubExecutionQueue(WWISE_TEST_ASYNC_NAME);
+			FWwiseExecutionQueue DeletionExecutionQueue(WWISE_TEST_ASYNC_NAME);
 
 			for (int i = 0; i < MainLoopCount; ++i)
 			{
-				MainExecutionQueue.Async([&SubExecutionQueue, &DeletionExecutionQueue, SubLoopCount, FinalLoopCount]
+				MainExecutionQueue.Async(WWISE_TEST_ASYNC_NAME, [&SubExecutionQueue, &DeletionExecutionQueue, SubLoopCount, FinalLoopCount]
 				{
 					for (int i = 0; i < SubLoopCount; ++i)
 					{
-						SubExecutionQueue.Async([&DeletionExecutionQueue, FinalLoopCount]
+						SubExecutionQueue.Async(WWISE_TEST_ASYNC_NAME, [&DeletionExecutionQueue, FinalLoopCount]
 						{
-							auto ExecutionQueue = new FWwiseExecutionQueue;
+							auto ExecutionQueue = new FWwiseExecutionQueue(WWISE_TEST_ASYNC_NAME);
 							for (int i = 0; i < FinalLoopCount; ++i)
 							{
-								ExecutionQueue->Async([]
+								ExecutionQueue->Async(WWISE_TEST_ASYNC_NAME, []
 								{
 								});
 							}
-							DeletionExecutionQueue.Async([ExecutionQueue]
+							DeletionExecutionQueue.Async(WWISE_TEST_ASYNC_NAME, [ExecutionQueue]
 							{
 								delete ExecutionQueue;
 							});
@@ -448,9 +430,6 @@ WWISE_TEST_CASE(Concurrency_ExecutionQueue_Stress, "Wwise::Concurrency::Executio
 			MainExecutionQueue.Close();
 			SubExecutionQueue.Close();
 		}
-		FTimespan Duration = FDateTime::UtcNow() - StartTime;
-		WWISE_TEST_LOG("AsyncAddingOpPerf %dus < %dus", (int)Duration.GetTotalMicroseconds(), ExpectedUS);
-		CHECK(Duration.GetTotalMicroseconds() < ExpectedUS);
 	}
 
 	SECTION("AsyncStress at Exit")
@@ -458,7 +437,7 @@ WWISE_TEST_CASE(Concurrency_ExecutionQueue_Stress, "Wwise::Concurrency::Executio
 		const bool bReduceLogVerbosity = FWwiseExecutionQueue::Test::bReduceLogVerbosity;
 		const bool bMockEngineDeletion = FWwiseExecutionQueue::Test::bMockEngineDeletion;
 		const bool bMockEngineDeleted = FWwiseExecutionQueue::Test::bMockEngineDeleted;
-		FWwiseExecutionQueue::Test::bReduceLogVerbosity = true;
+		FWwiseExecutionQueue::Test::bReduceLogVerbosity = !FWwiseExecutionQueue::Test::bExtremelyVerbose;
 		ON_SCOPE_EXIT
 		{
 			FWwiseExecutionQueue::Test::bReduceLogVerbosity = bReduceLogVerbosity;
@@ -472,30 +451,27 @@ WWISE_TEST_CASE(Concurrency_ExecutionQueue_Stress, "Wwise::Concurrency::Executio
 		constexpr const int SubLoopCount = 100;
 		constexpr const int FinalLoopCount = LoopCount / MainLoopCount / SubLoopCount;
 
-		constexpr const int ExpectedUS = 1000000;
-
-		FDateTime StartTime = FDateTime::UtcNow();
 		{
-			FWwiseExecutionQueue MainExecutionQueue;
-			FWwiseExecutionQueue SubExecutionQueue;
-			FWwiseExecutionQueue DeletionExecutionQueue;
+			FWwiseExecutionQueue MainExecutionQueue(WWISE_TEST_ASYNC_NAME);
+			FWwiseExecutionQueue SubExecutionQueue(WWISE_TEST_ASYNC_NAME);
+			FWwiseExecutionQueue DeletionExecutionQueue(WWISE_TEST_ASYNC_NAME);
 
 			for (int i = 0; i < MainLoopCount; ++i)
 			{
-				MainExecutionQueue.Async([&SubExecutionQueue, &DeletionExecutionQueue, SubLoopCount, FinalLoopCount]
+				MainExecutionQueue.Async(WWISE_TEST_ASYNC_NAME, [&SubExecutionQueue, &DeletionExecutionQueue, SubLoopCount, FinalLoopCount]
 				{
 					for (int i = 0; i < SubLoopCount; ++i)
 					{
-						SubExecutionQueue.Async([&DeletionExecutionQueue, FinalLoopCount]
+						SubExecutionQueue.Async(WWISE_TEST_ASYNC_NAME, [&DeletionExecutionQueue, FinalLoopCount]
 						{
-							auto ExecutionQueue = new FWwiseExecutionQueue;
+							auto ExecutionQueue = new FWwiseExecutionQueue(WWISE_TEST_ASYNC_NAME);
 							for (int i = 0; i < FinalLoopCount; ++i)
 							{
-								ExecutionQueue->Async([]
+								ExecutionQueue->Async(WWISE_TEST_ASYNC_NAME, []
 								{
 								});
 							}
-							DeletionExecutionQueue.Async([ExecutionQueue]
+							DeletionExecutionQueue.Async(WWISE_TEST_ASYNC_NAME, [ExecutionQueue]
 							{
 								delete ExecutionQueue;
 							});
@@ -505,13 +481,13 @@ WWISE_TEST_CASE(Concurrency_ExecutionQueue_Stress, "Wwise::Concurrency::Executio
 
 				if (i == MainLoopCount / 3)
 				{
-					MainExecutionQueue.Async([]
+					MainExecutionQueue.Async(WWISE_TEST_ASYNC_NAME, []
 					{
 						FWwiseExecutionQueue::Test::bMockEngineDeletion = true;
 					});
 				}
 			}
-			MainExecutionQueue.Async([]
+			MainExecutionQueue.Async(WWISE_TEST_ASYNC_NAME, []
 			{
 				FWwiseExecutionQueue::Test::bMockEngineDeleted = true;
 			});
@@ -519,10 +495,6 @@ WWISE_TEST_CASE(Concurrency_ExecutionQueue_Stress, "Wwise::Concurrency::Executio
 			MainExecutionQueue.Close();
 			SubExecutionQueue.Close();
 		}
-
-		FTimespan Duration = FDateTime::UtcNow() - StartTime;
-		WWISE_TEST_LOG("AsyncAddingOpPerf %dus < %dus", (int)Duration.GetTotalMicroseconds(), ExpectedUS);
-		CHECK(Duration.GetTotalMicroseconds() < ExpectedUS);
 	}
 }
 

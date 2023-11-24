@@ -33,8 +33,6 @@ Copyright (c) 2023 Audiokinetic Inc.
 #include "AkPlatform_PS4/AkPS4Platform.h"
 #elif defined(AK_PS5)
 #include "AkPlatform_PS5/AkPS5Platform.h"
-#elif defined(PLATFORM_STADIA) && PLATFORM_STADIA
-#include "AkPlatform_Stadia/AkStadiaPlatform.h"
 #elif defined(PLATFORM_SWITCH) && PLATFORM_SWITCH
 #include "AkPlatform_Switch/AkSwitchPlatform.h"
 #elif defined(PLATFORM_HOLOLENS) && PLATFORM_HOLOLENS
@@ -43,8 +41,6 @@ Copyright (c) 2023 Audiokinetic Inc.
 #include "AkPlatform_WinGC/AkWinGCPlatform.h"
 #elif PLATFORM_WINDOWS
 #include "AkPlatform_Windows/AkWindowsPlatform.h"
-#elif (defined(PLATFORM_XBOXONE) && PLATFORM_XBOXONE) && !((defined(PLATFORM_XBOXONEGDK) && PLATFORM_XBOXONEGDK) || (defined(PLATFORM_XB1) && PLATFORM_XB1))
-#include "AkPlatform_XboxOne/AkXboxOnePlatform.h"
 #elif ((defined(PLATFORM_XBOXONEGDK) && PLATFORM_XBOXONEGDK) || (defined(PLATFORM_XB1) && PLATFORM_XB1))
 #include "AkPlatform_XboxOneGC/AkXboxOneGDKPlatform.h"
 #elif defined(PLATFORM_XSX) && PLATFORM_XSX

@@ -201,7 +201,7 @@ FWwiseBrowserDataSource::FWwiseBrowserDataSource()
 	WaapiDataSource->WwiseExpansionChange.BindRaw(this, &FWwiseBrowserDataSource::OnWwiseExpansionChange);
 
 	ProjectDBDataSource->Init();
-	ProjectDBDataSource->ProjectDatabaseDataSourceRefreshed.BindRaw(this, &FWwiseBrowserDataSource::OnProjecDBDataSourceRefreshed);
+	ProjectDBDataSource->ProjectDatabaseDataSourceRefreshed.BindRaw(this, &FWwiseBrowserDataSource::OnProjectDBDataSourceRefreshed);
 
 	FAssetRegistryModule* AssetRegistryModule = &FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
 
@@ -525,22 +525,22 @@ void FWwiseBrowserDataSource::MergeDataSources(bool bGenerateUAssetsInfo)
 	{
 		FScopeLock AutoLock(&RootItemsLock);
 		FWwiseTreeItemPtr RootItem = MakeShared<FWwiseTreeItem>(FString("Orphaned UAssets"), FString("\\Orphaned UAssets"), nullptr, EWwiseItemType::Folder, FGuid());
-		TMap<FGuid, UAssetDataSourceInformation> OrphanAssets;
+		TArray<UAssetDataSourceInformation> OrphanAssets;
 		UAssetDataSource->GetOrphanAssets(OrphanAssets);
 		for(auto& OrphanAsset : OrphanAssets)
 		{
 			//Check if they should be filtered out by the text
 			if (CurrentFilterText.IsValid() && !CurrentFilterText->GetRawFilterText().IsEmpty())
 			{
-				if (!OrphanAsset.Value.Id.Name.ToString().Contains(CurrentFilterText->GetRawFilterText().ToString()))
+				if (!OrphanAsset.Id.Name.ToString().Contains(CurrentFilterText->GetRawFilterText().ToString()))
 				{
 					continue;
 				}
 			}
-			FWwiseTreeItemPtr NewItem = MakeShared<FWwiseTreeItem>(OrphanAsset.Value.Id.Name.ToString(), FString(), RootItem, OrphanAsset.Value.Type, OrphanAsset.Key);
-			NewItem->Assets = OrphanAsset.Value.AssetsData;
-			NewItem->UAssetName = OrphanAsset.Value.Id.Name;
-			NewItem->ShortId = OrphanAsset.Value.Id.ShortId;
+			FWwiseTreeItemPtr NewItem = MakeShared<FWwiseTreeItem>(OrphanAsset.Id.Name.ToString(), FString(), RootItem, OrphanAsset.Type, FGuid());
+			NewItem->Assets = OrphanAsset.AssetsData;
+			NewItem->UAssetName = OrphanAsset.Id.Name;
+			NewItem->ShortId = OrphanAsset.Id.ShortId;
 			RootItem->AddChild(NewItem);
 
 		}
@@ -672,7 +672,7 @@ void FWwiseBrowserDataSource::OnWaapiDataSourceRefreshed()
 	MergeDataSources(false);
 }
 
-void FWwiseBrowserDataSource::OnProjecDBDataSourceRefreshed()
+void FWwiseBrowserDataSource::OnProjectDBDataSourceRefreshed()
 {
 	MergeDataSources();
 }

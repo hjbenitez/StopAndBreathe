@@ -24,13 +24,13 @@ Copyright (c) 2023 Audiokinetic Inc.
 #endif
 
 #include "WwiseDefines.h"
+#include "WwiseUnrealDefines.h"
 #if UE_5_1_OR_LATER
 #include "Engine/HitResult.h"
 #endif
 
 namespace AkSpatialAudioHelper
 {
-	AActor* GetActorFromHitResult(const FHitResult& HitResult);
 	bool IsAkSpatialAudioActorClass(const AActor* Actor);
 
 #if WITH_EDITOR

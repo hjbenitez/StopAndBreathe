@@ -65,10 +65,7 @@ void UAkAuxBus::LoadAuxBus()
 		return;
 	}
 
-	if (LoadedAuxBus)
-	{
-		UnloadAuxBus(false);
-	}
+	UnloadAuxBus(false);
 
 #if WITH_EDITORONLY_DATA
 	if (!IWwiseProjectDatabaseModule::ShouldInitializeProjectDatabase())
@@ -93,12 +90,18 @@ void UAkAuxBus::LoadAuxBus()
 	FillMetadata(ResourceCooker->GetProjectDatabase());
 #endif
 
-	LoadedAuxBus = ResourceLoader->LoadAuxBus(AuxBusCookedData);
+	const auto NewlyLoadedAuxBus = ResourceLoader->LoadAuxBus(AuxBusCookedData);
+	auto PreviouslyLoadedAuxBus = LoadedAuxBus.exchange(NewlyLoadedAuxBus);
+	if (UNLIKELY(PreviouslyLoadedAuxBus))
+	{
+		ResourceLoader->UnloadAuxBus(MoveTemp(PreviouslyLoadedAuxBus));
+	}
 }
 
 void UAkAuxBus::UnloadAuxBus(bool bAsync)
 {
-	if (LoadedAuxBus)
+	auto PreviouslyLoadedAuxBus = LoadedAuxBus.exchange(nullptr);
+	if (PreviouslyLoadedAuxBus)
 	{
 		auto* ResourceLoader = FWwiseResourceLoader::Get();
 		if (UNLIKELY(!ResourceLoader))
@@ -109,14 +112,13 @@ void UAkAuxBus::UnloadAuxBus(bool bAsync)
 		if (bAsync)
 		{
 			FWwiseLoadedAuxBusPromise Promise;
-			Promise.EmplaceValue(MoveTemp(LoadedAuxBus));
+			Promise.EmplaceValue(MoveTemp(PreviouslyLoadedAuxBus));
 			ResourceUnload = ResourceLoader->UnloadAuxBusAsync(Promise.GetFuture());
 		}
 		else
 		{
-			ResourceLoader->UnloadAuxBus(MoveTemp(LoadedAuxBus));
+			ResourceLoader->UnloadAuxBus(MoveTemp(PreviouslyLoadedAuxBus));
 		}
-		LoadedAuxBus = nullptr;
 	}
 }
 

@@ -17,7 +17,7 @@ Copyright (c) 2023 Audiokinetic Inc.
 
 #include "FSoundPlayingColumn.h"
 
-#include "AkUEFeatures.h"
+#include "WwiseUEFeatures.h"
 #include "EditorStyleSet.h"
 #include "SWwiseBrowser.h"
 #include "WaapiPicker/WwiseTreeItem.h"

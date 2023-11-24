@@ -15,6 +15,7 @@ in a written agreement between you and Audiokinetic Inc.
 Copyright (c) 2023 Audiokinetic Inc.
 *******************************************************************************/
 
+#include "Wwise/WwiseTask.h"
 #include "Wwise/WwiseUnitTests.h"
 
 #if WWISE_UNIT_TESTS
@@ -25,25 +26,17 @@ WWISE_TEST_CASE(Concurrency_Future_Smoke, "Wwise::Concurrency::Future_Smoke", "[
 {
 	SECTION("Static")
 	{
-		static_assert(std::is_constructible<TWwisePromise<void>>::value);
-		static_assert(std::is_constructible<TWwiseFuture<void>>::value);
-		static_assert(std::is_constructible<TWwiseSharedFuture<void>>::value);
-		static_assert(std::is_constructible<TWwiseSharedFuture<void>, TWwiseFuture<void>&&>::value);
-		static_assert(std::is_constructible<TWwisePromise<int>>::value);
-		static_assert(std::is_constructible<TWwiseFuture<int>>::value);
-		static_assert(std::is_constructible<TWwiseSharedFuture<int>>::value);
-		static_assert(std::is_constructible<TWwiseSharedFuture<int>, TWwiseFuture<int>&&>::value);
-		static_assert(std::is_constructible<TWwisePromise<int&>>::value);
-		static_assert(std::is_constructible<TWwiseFuture<int&>>::value);
-		static_assert(std::is_constructible<TWwiseSharedFuture<int&>>::value);
-		static_assert(!std::is_constructible<TWwiseSharedFuture<int&>, TWwiseFuture<int&>&&>::value);
+		static_assert(std::is_constructible<TWwisePromise<void>>::value, "Can create a void promise");
+		static_assert(std::is_constructible<TWwiseFuture<void>>::value, "Can create a void future");
+		static_assert(std::is_constructible<TWwisePromise<int>>::value, "Can create an int promise");
+		static_assert(std::is_constructible<TWwiseFuture<int>>::value, "Can create an int future");
+		static_assert(std::is_constructible<TWwisePromise<int&>>::value, "Can create a reference promise");
+		static_assert(std::is_constructible<TWwiseFuture<int&>>::value, "Can create a reference future");
 
-		static_assert(!std::is_copy_constructible<TWwisePromise<void>>::value);
-		static_assert(std::is_move_constructible<TWwisePromise<void>>::value);
-		static_assert(!std::is_copy_constructible<TWwiseFuture<void>>::value);
-		static_assert(std::is_move_constructible<TWwiseFuture<void>>::value);
-		static_assert(std::is_copy_constructible<TWwiseSharedFuture<void>>::value);
-		static_assert(std::is_move_constructible<TWwiseSharedFuture<void>>::value);
+		static_assert(!std::is_copy_constructible<TWwisePromise<void>>::value, "A promise cannot be copied");
+		static_assert(std::is_move_constructible<TWwisePromise<void>>::value, "A promise can be moved");
+		static_assert(!std::is_copy_constructible<TWwiseFuture<void>>::value, "A future cannot be copied");
+		static_assert(std::is_move_constructible<TWwiseFuture<void>>::value, "A future can be moved");
 	}
 
 	SECTION("Basic Operations")
@@ -79,66 +72,6 @@ WWISE_TEST_CASE(Concurrency_Future_Smoke, "Wwise::Concurrency::Future_Smoke", "[
 		CHECK(VoidFuture.IsReady());
 		CHECK(IntFuture.IsReady());
 		CHECK(IntRefFuture.IsReady());
-	}
-
-	SECTION("Shared Basic Operations")
-	{
-		TWwisePromise<void> VoidPromise;
-		TWwisePromise<int> IntPromise;
-		TWwisePromise<int&> IntRefPromise;
-
-		TWwiseFuture<void> UninitVoidFuture;
-		TWwiseFuture<int> UninitIntFuture;
-		TWwiseFuture<int&> UninitIntRefFuture;
-
-		TWwiseFuture<void> VoidFuture( VoidPromise.GetFuture() );
-		TWwiseFuture<int> IntFuture( IntPromise.GetFuture() );
-		TWwiseFuture<int&> IntRefFuture( IntRefPromise.GetFuture() );
-
-		TWwiseSharedFuture<void> UninitSharedVoidFuture;
-		TWwiseSharedFuture<int> UninitSharedIntFuture;
-		TWwiseSharedFuture<int&> UninitSharedIntRefFuture;
-		TWwiseSharedFuture<void> UninitSharedVoidFuture2( MoveTemp(UninitVoidFuture) );
-		TWwiseSharedFuture<int> UninitSharedIntFuture2( MoveTemp(UninitIntFuture) );
-
-		TWwiseSharedFuture<void> SharedVoidFuture( VoidFuture.Share() );
-		TWwiseSharedFuture<int> SharedIntFuture( IntFuture.Share() );
-		//TWwiseSharedFuture<int&> SharedIntRefFuture( IntRefFuture.Share() );
-		auto SharedVoidFuture2( SharedVoidFuture );
-		auto SharedIntFuture2( SharedIntFuture );
-		//auto SharedIntRefFuture2( SharedIntRefFuture );
-
-		CHECK(!UninitVoidFuture.IsValid());
-		CHECK(!UninitIntFuture.IsValid());
-		CHECK(!UninitIntRefFuture.IsValid());
-		CHECK(!VoidFuture.IsValid());
-		CHECK(!IntFuture.IsValid());
-		CHECK(IntRefFuture.IsValid());
-		CHECK(!UninitSharedVoidFuture.IsValid());
-		CHECK(!UninitSharedIntFuture.IsValid());
-		CHECK(!UninitSharedIntRefFuture.IsValid());
-		CHECK(!UninitSharedVoidFuture2.IsValid());
-		CHECK(!UninitSharedIntFuture2.IsValid());
-
-		CHECK(SharedVoidFuture.IsValid());
-		CHECK(SharedIntFuture.IsValid());
-		//CHECK(SharedIntRefFuture.IsValid());
-
-		CHECK(!SharedVoidFuture.IsReady());
-		CHECK(!SharedIntFuture.IsReady());
-		//CHECK(!SharedIntRefFuture.IsReady());
-
-		int Value = 1;
-		VoidPromise.SetValue();
-		IntPromise.SetValue(1);
-		IntRefPromise.SetValue(Value);
-
-		CHECK(SharedVoidFuture.IsReady());
-		CHECK(SharedIntFuture.IsReady());
-		//CHECK(SharedIntRefFuture.IsReady());
-		CHECK(SharedVoidFuture2.IsReady());
-		CHECK(SharedIntFuture2.IsReady());
-		//CHECK(SharedIntRefFuture2.IsReady());
 	}
 
 	SECTION("Next")
@@ -214,6 +147,33 @@ WWISE_TEST_CASE(Concurrency_Future_Smoke, "Wwise::Concurrency::Future_Smoke", "[
 		CHECK(bDone);
 		CHECK(NewFuture.IsReady());
 	}
+
+	SECTION("Wait Fulfilled")
+	{
+		TWwisePromise<void> VoidPromise;
+		auto VoidFuture( VoidPromise.GetFuture() );
+		VoidPromise.EmplaceValue();
+		CHECK(VoidFuture.WaitFor(0));
+	}
+
+	SECTION("Wait Unfulfilled")
+	{
+		TWwisePromise<void> VoidPromise;
+		auto VoidFuture( VoidPromise.GetFuture() );
+		FFunctionGraphTask::CreateAndDispatchWhenReady([VoidPromise = MoveTemp(VoidPromise)]() mutable
+		{
+			VoidPromise.EmplaceValue();
+		});
+		CHECK(VoidFuture.WaitFor(FTimespan::FromMilliseconds(10)));
+	}
+
+	SECTION("Wait Not Ready")
+	{
+		TWwisePromise<void> VoidPromise;
+		auto VoidFuture( VoidPromise.GetFuture() );
+		CHECK(!VoidFuture.WaitFor(0));
+		VoidPromise.EmplaceValue();
+	}
 }
 
 /*
@@ -230,7 +190,7 @@ WWISE_TEST_CASE(Concurrency_Future_Perf, "Wwise::Concurrency::Future_Perf", "[Ap
 
 void Multithreaded_Then_Future_Op(TWwiseFuture<int>&& Future, FEventRef& Event, int Num)
 {
-	FFunctionGraphTask::CreateAndDispatchWhenReady([Future = MoveTemp(Future), &Event, Num]() mutable
+	LaunchWwiseTask(WWISE_TEST_ASYNC_NAME, [Future = MoveTemp(Future), &Event, Num]() mutable
 	{
 		Future.Get();
 
@@ -294,17 +254,17 @@ WWISE_TEST_CASE(Concurrency_Future_Stress, "Wwise::Concurrency::Future_Stress", 
 			TWwisePromise<int> Promise;
 			Futures[Num] = Promise.GetFuture();
 
-			FFunctionGraphTask::CreateAndDispatchWhenReady([Future = &Futures[Num], Event = &Events[Num]]() mutable
+			LaunchWwiseTask(WWISE_TEST_ASYNC_NAME, [Future = &Futures[Num], Event = &Events[Num]]() mutable
 			{
 				CHECK(Future->WaitFor(FTimespan::FromMilliseconds(100)));
 				if (Future->IsReady())
 				{
 					CHECK(Future->Get());
 				}
-				Event->Get()->Trigger();
+				(*Event)->Trigger();
 			});			
 
-			FFunctionGraphTask::CreateAndDispatchWhenReady([Promise = MoveTemp(Promise)]() mutable
+			LaunchWwiseTask(WWISE_TEST_ASYNC_NAME, [Promise = MoveTemp(Promise)]() mutable
 			{
 				Promise.EmplaceValue(1);
 			});

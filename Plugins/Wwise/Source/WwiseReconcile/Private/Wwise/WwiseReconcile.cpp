@@ -28,7 +28,7 @@ Copyright (c) 2023 Audiokinetic Inc.
 #include "AkSwitchValue.h"
 #include "AkTrigger.h"
 #include "AkUnrealAssetDataHelper.h"
-#include "AkUnrealHelper.h"
+#include "WwiseUnrealHelper.h"
 #include "AssetToolsModule.h"
 #include "AssetViewUtils.h"
 #include "AssetRegistry/AssetData.h"

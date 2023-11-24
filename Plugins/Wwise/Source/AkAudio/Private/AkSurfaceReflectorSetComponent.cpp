@@ -23,7 +23,7 @@ Copyright (c) 2023 Audiokinetic Inc.
 #include "AkRoomComponent.h"
 #include "AkSettings.h"
 #include "AkSpatialAudioVolume.h"
-#include "AkUEFeatures.h"
+#include "WwiseUEFeatures.h"
 #include "Components/BrushComponent.h"
 
 #include "EngineUtils.h"
@@ -219,6 +219,16 @@ void UAkSurfaceReflectorSetComponent::OnRegister()
 	InitializeParentBrush();
 	SendSurfaceReflectorSet();
 	UpdateSurfaceReflectorSet();
+#if WITH_EDITOR
+	if (AssociatedRoom != nullptr)
+	{
+		UAkRoomComponent* room = Cast<UAkRoomComponent>(AssociatedRoom->GetComponentByClass(UAkRoomComponent::StaticClass()));
+		if (room != nullptr)
+		{
+			UE_LOG(LogAkAudio, Warning, TEXT("AkSurfaceReflectorSetComponent %s is associated to Room %s. The AssociatedRoom property is deprecated, it will be removed in a future version. We recommend not using it and leaving it set to None."), *GetOwner()->GetName(), *room->GetRoomName());
+		}
+	}
+#endif
 }
 
 void UAkSurfaceReflectorSetComponent::InitializeParentBrush(bool fromTick /* = false */)
@@ -285,7 +295,12 @@ void UAkSurfaceReflectorSetComponent::ComputeAcousticPolySurfaceArea()
 
 	if (NumBrushFaces > NumFaces)
 	{
-		AcousticPolys.AddDefaulted(NumBrushFaces - NumFaces);
+		for (int i = 0; i < NumBrushFaces - NumFaces; ++i)
+		{
+			FAkSurfacePoly Surface;
+			Surface.EnableSurface = bEnableSurfaceReflectors;
+			AcousticPolys.Add(Surface);
+		}
 	}
 	else if (NumBrushFaces < NumFaces)
 	{
@@ -1025,15 +1040,24 @@ void UAkSurfaceReflectorSetComponent::GetTexturesAndSurfaceAreas(TArray<FAkAcous
 				if (Poly.Texture && Poly.EnableSurface)
 				{
 					surfaceAreas.Add(Poly.GetSurfaceArea() / AkComponentHelpers::UnrealUnitsPerSquaredMeter(this));
-					const FAkAcousticTextureParams* params = AkSettings->GetTextureParams(Poly.Texture->GetShortID());
-					if (params != nullptr)
+					FAkAcousticTextureParams params;
+#if WITH_EDITOR
+					// Get the most accurate absorption values from the list in the AkSettings
+					auto ParamsFound = AkSettings->GetTextureParams(Poly.Texture->GetShortID());
+					if (ParamsFound != nullptr)
 					{
-						textures.Add(*params);
+						params = *ParamsFound;
 					}
-					else
-					{
-						textures.Add(FAkAcousticTextureParams());
-					}
+#else
+					// Get the absorption values from the cooked data
+					params.AbsorptionValues = FVector4(
+						Poly.Texture->AcousticTextureCookedData.AbsorptionLow / 100.0f,
+						Poly.Texture->AcousticTextureCookedData.AbsorptionMidLow / 100.0f,
+						Poly.Texture->AcousticTextureCookedData.AbsorptionMidHigh / 100.0f,
+						Poly.Texture->AcousticTextureCookedData.AbsorptionHigh / 100.0f
+					);
+#endif
+					textures.Add(params);
 				}
 			}
 		}
@@ -1114,7 +1138,7 @@ void UAkSurfaceReflectorSetComponent::SendSurfaceReflectorSet()
 			if (AcousticPolys.Num() > NodeIdx)
 			{
 				FAkSurfacePoly AcousticSurface = AcousticPolys[NodeIdx];
-				if (ParentBrush->Nodes[NodeIdx].NumVertices > 2 && (AcousticSurface.EnableSurface || !bEnableSurfaceReflectors))
+				if (ParentBrush->Nodes[NodeIdx].NumVertices > 2)
 				{
 					FString TriangleName;
 					if (AcousticSurface.Texture != nullptr)
@@ -1128,8 +1152,15 @@ void UAkSurfaceReflectorSetComponent::SendSurfaceReflectorSet()
 					SurfaceNames.Add(MakeShareable(new decltype(StringCast<ANSICHAR>(TEXT("")))(*TriangleName)));
 
 					AkAcousticSurface NewSurface;
-					NewSurface.textureID = AcousticSurface.Texture != nullptr ? FAkAudioDevice::Get()->GetShortIDFromString(AcousticSurface.Texture->GetName()) : 0;
-					NewSurface.transmissionLoss = AcousticSurface.Occlusion;
+					NewSurface.textureID = (AcousticSurface.Texture != nullptr && AcousticSurface.EnableSurface) ? FAkAudioDevice::Get()->GetShortIDFromString(AcousticSurface.Texture->GetName()) : 0;
+					if (bEnableSurfaceReflectors)
+					{
+						NewSurface.transmissionLoss = AcousticSurface.EnableSurface ? AcousticSurface.Occlusion : 0.f;
+					}
+					else
+					{
+						NewSurface.transmissionLoss = AcousticSurface.EnableSurface ? 1.f : 0.f;
+					}
 					NewSurface.strName = SurfaceNames.Last()->Get();
 					SurfacesToSend.Add(NewSurface);
 
@@ -1164,9 +1195,8 @@ void UAkSurfaceReflectorSetComponent::SendSurfaceReflectorSet()
 			params.Surfaces = SurfacesToSend.GetData();
 			params.Triangles = TrianglesToSend.GetData();
 			params.Vertices = VertsToSend.GetData();
-			params.EnableDiffraction = bEnableDiffraction;
-			params.EnableDiffractionOnBoundaryEdges = bEnableDiffractionOnBoundaryEdges;
-			params.EnableTriangles = bEnableSurfaceReflectors;
+			params.EnableDiffraction = bEnableSurfaceReflectors ? bEnableDiffraction : false;
+			params.EnableDiffractionOnBoundaryEdges = bEnableSurfaceReflectors ? bEnableDiffractionOnBoundaryEdges : false;
 
 			SendGeometryToWwise(params);
 		}
@@ -1189,7 +1219,7 @@ void UAkSurfaceReflectorSetComponent::UpdateSurfaceReflectorSet()
 			roomID = room->GetRoomID();
 	}
 
-	SendGeometryInstanceToWwise(GetOwner()->ActorToWorld().Rotator(), GetOwner()->GetActorLocation(), GetOwner()->ActorToWorld().GetScale3D(), roomID);
+	SendGeometryInstanceToWwise(GetOwner()->ActorToWorld().Rotator(), GetOwner()->GetActorLocation(), GetOwner()->ActorToWorld().GetScale3D(), roomID, bEnableSurfaceReflectors);
 
 	if (ReverbDescriptor != nullptr && ParentBrush != nullptr)
 	{
@@ -1353,12 +1383,19 @@ void UAkSurfaceReflectorSetComponent::AssignAcousticTexturesFromSamples(const TA
 				GetDefault<UAkSettings>()->GetAssociatedOcclusionValue(Material.Get(), AcousticPolys[NodeIdx].Occlusion);
 				AcousticPolys[NodeIdx].EnableSurface = true;
 			}
+			else
+			{
+				AcousticPolys[NodeIdx].Texture = GetDefault<UAkSettings>()->DefaultAcousticTexture.LoadSynchronous();
+				AcousticPolys[NodeIdx].Occlusion = GetDefault<UAkSettings>()->DefaultTransmissionLoss;
+				AcousticPolys[NodeIdx].EnableSurface = true;
+			}
 		}
 		if (AcousticPolys[NodeIdx].Texture != nullptr)
 			RegisterTextureParamChangeCallback(AcousticPolys[NodeIdx].Texture->AcousticTextureInfo.WwiseGuid);
 	}
 
 	OnRefreshDetails.ExecuteIfBound();
+	SurfacePropertiesChanged();
 	// Update text visualizers.
 	SchedulePolysUpdate();
 }

@@ -59,5 +59,5 @@ public:
 private :
 	void LoadEffectShareSet();
 	void UnloadEffectShareSet(bool bAsync);
-	FWwiseLoadedShareSet LoadedShareSet;
+	FWwiseLoadedShareSetPtrAtomic LoadedShareSet{nullptr};
 };

@@ -21,7 +21,7 @@ AkAcousticPortalVisualizer.cpp:
 
 #include "AkAcousticPortalVisualizer.h"
 
-#include "AkUEFeatures.h"
+#include "WwiseUEFeatures.h"
 #include "AkSpatialAudioDrawUtils.h"
 #include "AkDrawPortalComponent.h"
 #include "AkRoomComponent.h"

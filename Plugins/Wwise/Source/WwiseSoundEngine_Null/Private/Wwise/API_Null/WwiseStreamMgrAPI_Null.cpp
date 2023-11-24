@@ -53,13 +53,14 @@ void FWwiseStreamMgrAPI_Null::SetFileLocationResolver(
 	SCOPE_CYCLE_COUNTER(STAT_WwiseSoundEngineAPI_Null);
 }
 
-AkDeviceID FWwiseStreamMgrAPI_Null::CreateDevice(
-	const AkDeviceSettings& in_settings,
-	AK::StreamMgr::IAkLowLevelIOHook* in_pLowLevelHook
+AKRESULT FWwiseStreamMgrAPI_Null::CreateDevice(
+	const AkDeviceSettings& in_settings,		///< Device settings.
+	AK::StreamMgr::IAkLowLevelIOHook* in_pLowLevelHook,	///< Associated low-level I/O hook. Pass either a IAkLowLevelIOHook interface, consistent with the type of the scheduler.
+	AkDeviceID& out_idDevice		///< Assigned unique device id to use in all other functions of this interface.
 )
 {
 	SCOPE_CYCLE_COUNTER(STAT_WwiseSoundEngineAPI_Null);
-	return AK_INVALID_OUTPUT_DEVICE_ID;
+	return AK_NotImplemented;
 }
 
 AKRESULT FWwiseStreamMgrAPI_Null::DestroyDevice(

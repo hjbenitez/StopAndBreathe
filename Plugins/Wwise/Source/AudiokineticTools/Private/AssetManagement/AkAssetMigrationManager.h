@@ -19,6 +19,7 @@ Copyright (c) 2023 Audiokinetic Inc.
 
 #include "AkAssetMigrationHelper.h"
 #include "AkSettings.h"
+#include "WwiseUnrealDefines.h"
 #include "LevelEditor.h"
 
 class AkAssetMigrationManager

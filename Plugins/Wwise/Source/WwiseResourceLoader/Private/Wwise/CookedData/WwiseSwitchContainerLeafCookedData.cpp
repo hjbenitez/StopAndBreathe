@@ -45,13 +45,32 @@ void FWwiseSwitchContainerLeafCookedData::Serialize(FArchive& Ar)
 
 bool FWwiseSwitchContainerLeafCookedData::operator==(const FWwiseSwitchContainerLeafCookedData& Rhs) const
 {
-	if (GroupValueSet.Num() != Rhs.GroupValueSet.Num())
+	if (GroupValueSet.Num() != Rhs.GroupValueSet.Num() ||
+		Media.Num() != Rhs.Media.Num() ||
+		ExternalSources.Num() != Rhs.ExternalSources.Num() ||
+		SoundBanks.Num() != Rhs.SoundBanks.Num() ||
+		GroupValueSet.Difference(Rhs.GroupValueSet).Num() != 0)
 	{
 		return false;
 	}
-	for (const auto& Elem : GroupValueSet)
+	
+	for (int i = 0; i < Media.Num(); ++i)
 	{
-		if (!Rhs.GroupValueSet.Contains(Elem))
+		if (Media[i] != Rhs.Media[i])
+		{
+			return false;
+		}
+	}
+	for (int i = 0;i < ExternalSources.Num(); ++i)
+	{
+		if (ExternalSources[i] != Rhs.ExternalSources[i])
+		{
+			return false;
+		}
+	}
+	for (int i = 0; i < SoundBanks.Num(); ++i)
+	{
+		if (SoundBanks[i] != Rhs.SoundBanks[i])
 		{
 			return false;
 		}
@@ -61,24 +80,20 @@ bool FWwiseSwitchContainerLeafCookedData::operator==(const FWwiseSwitchContainer
 
 FString FWwiseSwitchContainerLeafCookedData::GetDebugString() const
 {
-	auto Result = FString::Printf(TEXT("Switch Container Leaf %d"), static_cast<int>(GroupValueSet.Num()));
+	FString Result = TEXT("[");
 	bool Add = false;
 	for (const auto& GroupValue : GroupValueSet)
 	{
 		if (Add)
 		{
-			Result += TEXT(", ");
+			Result += TEXT(",");
 		}
 		else
 		{
-			Result += TEXT(" [");
 			Add = true;
 		}
 		Result += GroupValue.GetDebugString();
 	}
-	if (Add)
-	{
-		Result += TEXT("]");
-	}
+	Result += TEXT("]");
 	return Result;
 }

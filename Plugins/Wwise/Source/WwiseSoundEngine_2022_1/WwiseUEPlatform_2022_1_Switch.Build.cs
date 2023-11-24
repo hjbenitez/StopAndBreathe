@@ -41,7 +41,7 @@ public class WwiseUEPlatform_2022_1_Switch : WwiseUEPlatform
 
 	public override List<string> GetAdditionalWwiseLibs()
 	{
-		var libs = GetAllLibrariesInFolder(Path.Combine(ThirdPartyFolder, AkPlatformLibDir, AkConfigurationDir, "lib"), "a", true);
+		var libs = GetAllLibrariesInFolder(Path.Combine(ThirdPartyFolder, AkPlatformLibDir, WwiseConfigurationDir, "lib"), "a", true);
 		libs.Add("AkOpusNXDecoder");
 		return libs;
 	}

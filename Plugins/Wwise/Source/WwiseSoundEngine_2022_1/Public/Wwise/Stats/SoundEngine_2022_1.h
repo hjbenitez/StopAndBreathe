@@ -18,6 +18,7 @@ Copyright (c) 2023 Audiokinetic Inc.
 #pragma once
 
 #include "Wwise/Stats/SoundEngine.h"
+#include "Wwise/Stats/NamedEvents.h"
 #include "Stats/Stats.h"
 #include "Logging/LogMacros.h"
 

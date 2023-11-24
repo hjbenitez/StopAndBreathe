@@ -42,7 +42,7 @@ int32 UAkAudioInputComponent::PostAssociatedAudioInputEvent()
 
 
 	AkPlayingID PlayingID = FAkAudioInputManager::PostAudioInputEvent(
-		 AkAudioEvent, EventName, this, AudioInputDelegate, AudioFormatDelegate);
+		 AkAudioEvent, this, AudioInputDelegate, AudioFormatDelegate);
 
 	if (PlayingID != AK_INVALID_PLAYING_ID)
 	{

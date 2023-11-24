@@ -60,7 +60,6 @@ namespace StaticPluginWriter_Helper
 		AkHarmonizer = 0x8A0003,
 		AkMotionSink = 0x1FB0007,
 		AkMotionSource = 0x1990002,
-		AkMotionGeneratorSource = 0x1950002,
 		AkPitchShifter = 0x880003,
 		AkRecorder = 0x840003,
 		AkReflect = 0xAB0003,
@@ -101,7 +100,6 @@ namespace StaticPluginWriter_Helper
 		{ PluginID::AkMeter, "AkMeterFX" },
 		{ PluginID::AkMotionSink, "AkMotionSink" },
 		{ PluginID::AkMotionSource, "AkMotionSourceSource" },
-		{ PluginID::AkMotionGeneratorSource, "AkMotionGeneratorSource" },
 		{ PluginID::AkParametricEQ, "AkParametricEQFX" },
 		{ PluginID::AkPeakLimiter, "AkPeakLimiterFX" },
 		{ PluginID::AkPitchShifter, "AkPitchShifterFX" },
@@ -151,7 +149,7 @@ namespace StaticPluginWriter_Helper
 	{
 		TArray<FString> Result;
 		FWwiseProjectDatabase* ProjectDatabase = FWwiseProjectDatabase::Get();
-		if(UNLIKELY(!ProjectDatabase))
+		if(UNLIKELY(!ProjectDatabase || !ProjectDatabase->IsProjectDatabaseParsed()))
 		{
 			return {};
 		}

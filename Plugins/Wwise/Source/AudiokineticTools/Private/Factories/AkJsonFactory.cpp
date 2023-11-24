@@ -22,7 +22,7 @@ Copyright (c) 2023 Audiokinetic Inc.
 
 #include "AkAudioEvent.h"
 #include "AkSettings.h"
-#include "AkUnrealHelper.h"
+#include "WwiseUnrealHelper.h"
 #include "Misc/Paths.h"
 
 /*------------------------------------------------------------------------------
@@ -50,7 +50,7 @@ bool UAkJsonFactory::FactoryCanImport(const FString& Filename)
 	{
 		const UAkSettings* AkSettings = GetDefault<UAkSettings>();
 
-		if (Filename.Contains(AkUnrealHelper::GetSoundBankDirectory()))
+		if (Filename.Contains(WwiseUnrealHelper::GetSoundBankDirectory()))
 		{
 			return true;
 		}

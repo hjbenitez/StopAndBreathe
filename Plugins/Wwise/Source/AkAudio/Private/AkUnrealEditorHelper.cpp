@@ -17,6 +17,8 @@ Copyright (c) 2023 Audiokinetic Inc.
 
 #include "AkUnrealEditorHelper.h"
 
+#include "WwiseUnrealHelper.h"
+
 #if WITH_EDITOR
 
 #include "Interfaces/IPluginManager.h"
@@ -28,7 +30,7 @@ Copyright (c) 2023 Audiokinetic Inc.
 #include "SSettingsEditorCheckoutNotice.h"
 
 #include "AkSettings.h"
-#include "AkUnrealHelper.h"
+#include "WwiseUnrealDefines.h"
 #include "Wwise/Stats/AkAudio.h"
 
 #if UE_5_0_OR_LATER
@@ -46,7 +48,7 @@ namespace AkUnrealEditorHelper
 
 	void SanitizePath(FString& Path, const FString& PreviousPath, const FText& DialogMessage)
 	{
-		AkUnrealHelper::TrimPath(Path);
+		WwiseUnrealHelper::TrimPath(Path);
 
 		FText FailReason;
 		if (!FPaths::ValidatePath(Path, &FailReason))
@@ -81,7 +83,7 @@ namespace AkUnrealEditorHelper
 
 	bool SanitizeFolderPathAndMakeRelativeToContentDir(FString& Path, const FString& PreviousPath, const FText& DialogMessage)
 	{
-		AkUnrealHelper::TrimPath(Path);
+		WwiseUnrealHelper::TrimPath(Path);
 
 		FString TempPath = IFileManager::Get().ConvertToAbsolutePathForExternalAppForWrite(*Path);
 		FText FailReason;
@@ -99,7 +101,7 @@ namespace AkUnrealEditorHelper
 			return false;
 		}
 
-		auto ContentDirectory = AkUnrealHelper::GetContentDirectory();
+		auto ContentDirectory = WwiseUnrealHelper::GetContentDirectory();
 		if (!FPaths::FileExists(TempPath))
 		{
 			// Path might be a valid one (relative to game) entered manually. Check that.
@@ -161,11 +163,11 @@ namespace AkUnrealEditorHelper
 	{
 		if (const UAkSettings* AkSettings = GetDefault<UAkSettings>())
 		{
-			return FPaths::Combine(AkUnrealHelper::GetContentDirectory(), AkSettings->WwiseSoundDataFolder.Path);
+			return FPaths::Combine(WwiseUnrealHelper::GetContentDirectory(), AkSettings->WwiseSoundDataFolder.Path);
 		}
 		else
 		{
-			return FPaths::Combine(AkUnrealHelper::GetContentDirectory(), UAkSettings::DefaultSoundDataFolder);
+			return FPaths::Combine(WwiseUnrealHelper::GetContentDirectory(), UAkSettings::DefaultSoundDataFolder);
 		}
 	}
 
@@ -181,7 +183,7 @@ namespace AkUnrealEditorHelper
 		for (auto& Extension : ExtensionsToDelete)
 		{
 			TArray<FString> FoundFiles;
-			FPlatformFileManager::Get().GetPlatformFile().FindFilesRecursively(FoundFiles, *AkUnrealHelper::GetSoundBankDirectory(), *Extension);
+			FPlatformFileManager::Get().GetPlatformFile().FindFilesRecursively(FoundFiles, *WwiseUnrealHelper::GetSoundBankDirectory(), *Extension);
 			FPlatformFileManager::Get().GetPlatformFile().FindFilesRecursively(FoundFiles, *GetLegacySoundBankDirectory(), *Extension);
 			TSet<FString> FoundFilesSet(FoundFiles);
 			for (auto& File : FoundFilesSet)

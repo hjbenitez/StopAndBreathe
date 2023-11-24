@@ -36,6 +36,7 @@ struct WWISERESOURCELOADER_API FWwiseLoadedInitBankInfo
 
 		bool bLoaded = false;
 		TArray<const FWwiseMediaCookedData*> LoadedMedia;
+		int IsProcessing{0};
 
 		bool IsLoaded() const;
 	} LoadedData;
@@ -49,6 +50,7 @@ private:
 
 using FWwiseLoadedInitBankList = TDoubleLinkedList<FWwiseLoadedInitBankInfo>;
 using FWwiseLoadedInitBankListNode = FWwiseLoadedInitBankList::TDoubleLinkedListNode;
-using FWwiseLoadedInitBank = FWwiseLoadedInitBankListNode*;
-using FWwiseLoadedInitBankPromise = TWwisePromise<FWwiseLoadedInitBank>;
-using FWwiseLoadedInitBankFuture = TWwiseFuture<FWwiseLoadedInitBank>;
+using FWwiseLoadedInitBankPtr = FWwiseLoadedInitBankListNode*;
+using FWwiseLoadedInitBankPtrAtomic = std::atomic<FWwiseLoadedInitBankPtr>;
+using FWwiseLoadedInitBankPromise = TWwisePromise<FWwiseLoadedInitBankPtr>;
+using FWwiseLoadedInitBankFuture = TWwiseFuture<FWwiseLoadedInitBankPtr>;

@@ -23,6 +23,8 @@ Copyright (c) 2023 Audiokinetic Inc.
 #include "GameFramework/Actor.h"
 #include "AkAmbientSound.generated.h"
 
+DECLARE_LOG_CATEGORY_EXTERN(LogAkAmbientSound, Log, All);
+
 /*------------------------------------------------------------------------------------
 	AAkAmbientSound
 ------------------------------------------------------------------------------------*/

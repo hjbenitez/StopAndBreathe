@@ -17,6 +17,7 @@ Copyright (c) 2023 Audiokinetic Inc.
 
 #include "Wwise/Metadata/WwiseMetadataAcousticTexture.h"
 #include "Wwise/Metadata/WwiseMetadataLoader.h"
+#include "WwiseDefines.h"
 
 FWwiseMetadataAcousticTexture::FWwiseMetadataAcousticTexture(FWwiseMetadataLoader& Loader) :
 	FWwiseMetadataBasicReference(Loader)
@@ -33,5 +34,9 @@ const TMap<FName, size_t> FWwiseMetadataAcousticTexture::FillFloatProperties()
 	Result.Add(FName(TEXT("AbsorptionMidLow")), offsetof(FWwiseMetadataAcousticTexture, AbsorptionMidLow));
 	Result.Add(FName(TEXT("AbsorptionMidHigh")), offsetof(FWwiseMetadataAcousticTexture, AbsorptionMidHigh));
 	Result.Add(FName(TEXT("AbsorptionHigh")), offsetof(FWwiseMetadataAcousticTexture, AbsorptionHigh));
+
+#if WWISE_2023_1_OR_LATER
+	Result.Add(FName(TEXT("Scattering")), offsetof(FWwiseMetadataAcousticTexture, Scattering));
+#endif
 	return Result;
 }

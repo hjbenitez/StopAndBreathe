@@ -44,10 +44,9 @@ void FWwiseWriteFileState::CloseStreaming()
 	}
 	else
 	{
-		FileStateExecutionQueue->AsyncWait([this]
+		FileStateExecutionQueue->AsyncWait(WWISEFILEHANDLER_ASYNC_NAME("FWwiseWriteFileState::CloseStreaming"), [this]
 		{
 			UE_LOG(LogWwiseFileHandler, Verbose, TEXT("ProcessWrite: Closing file %s"), *FilePathName);
-			SCOPED_WWISEFILEHANDLER_EVENT_3(TEXT("FWwiseWriteFileState::CloseStreaming Async"));
 			if (FileHandle)
 			{
 				delete FileHandle;
@@ -77,9 +76,8 @@ AKRESULT FWwiseWriteFileState::ProcessWrite(AkFileDesc& InFileDesc, const AkIoHe
 		InFileOpDoneCallback(&OutTransferInfo, AK_NotInitialized);
 		return AK_NotInitialized;
 	}
-	FileStateExecutionQueue->Async([this, InFileDesc, InHeuristics, OutTransferInfo, InFileOpDoneCallback = MoveTemp(InFileOpDoneCallback)]() mutable
+	FileStateExecutionQueue->Async(WWISEFILEHANDLER_ASYNC_NAME("FWwiseWriteFileState::ProcessWrite Async"), [this, InFileDesc, InHeuristics, OutTransferInfo, InFileOpDoneCallback = MoveTemp(InFileOpDoneCallback)]() mutable
 	{
-		SCOPED_WWISEFILEHANDLER_EVENT_3(TEXT("FWwiseWriteFileState::ProcessWrite Async"));
 		UE_LOG(LogWwiseFileHandler, VeryVerbose, TEXT("ProcessWrite: Writing %" PRIu32 " bytes @ %" PRIu64 " in file %s"),
 			OutTransferInfo.uBufferSize, OutTransferInfo.uFilePosition, *FilePathName);
 

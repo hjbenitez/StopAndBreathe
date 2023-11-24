@@ -26,7 +26,7 @@ struct WWISERESOURCELOADER_API FWwiseSharedPlatformId
 {
 	GENERATED_BODY()
 
-	TSharedRef<FWwisePlatformId> Platform;
+	TSharedRef<FWwisePlatformId, ESPMode::ThreadSafe> Platform;
 
 	FWwiseSharedPlatformId() :
 		Platform(new FWwisePlatformId)

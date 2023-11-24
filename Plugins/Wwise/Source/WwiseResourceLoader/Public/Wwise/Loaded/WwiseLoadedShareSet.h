@@ -37,6 +37,7 @@ struct WWISERESOURCELOADER_API FWwiseLoadedShareSetInfo
 
 		TArray<const FWwiseSoundBankCookedData*> LoadedSoundBanks;
 		TArray<const FWwiseMediaCookedData*> LoadedMedia;
+		int IsProcessing{0};
 
 		bool IsLoaded() const;
 	} LoadedData;
@@ -50,6 +51,7 @@ private:
 
 using FWwiseLoadedShareSetList = TDoubleLinkedList<FWwiseLoadedShareSetInfo>;
 using FWwiseLoadedShareSetListNode = FWwiseLoadedShareSetList::TDoubleLinkedListNode;
-using FWwiseLoadedShareSet = FWwiseLoadedShareSetListNode*;
-using FWwiseLoadedShareSetPromise = TWwisePromise<FWwiseLoadedShareSet>;
-using FWwiseLoadedShareSetFuture = TWwiseFuture<FWwiseLoadedShareSet>;
+using FWwiseLoadedShareSetPtr = FWwiseLoadedShareSetListNode*;
+using FWwiseLoadedShareSetPtrAtomic = std::atomic<FWwiseLoadedShareSetPtr>;
+using FWwiseLoadedShareSetPromise = TWwisePromise<FWwiseLoadedShareSetPtr>;
+using FWwiseLoadedShareSetFuture = TWwiseFuture<FWwiseLoadedShareSetPtr>;

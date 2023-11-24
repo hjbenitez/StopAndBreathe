@@ -22,7 +22,7 @@ Copyright (c) 2023 Audiokinetic Inc.
 #include "HAL/ThreadSafeBool.h"
 #include "Widgets/Notifications/SNotificationList.h"
 #include "AssetManagement/WwiseProjectInfo.h"
-#include "AkUnrealHelper.h"
+#include "WwiseUnrealHelper.h"
 
 DECLARE_STATS_GROUP(TEXT("AkSoundBankGeneration"), STATGROUP_AkSoundBankGenerationSource, STATCAT_Wwise);
 

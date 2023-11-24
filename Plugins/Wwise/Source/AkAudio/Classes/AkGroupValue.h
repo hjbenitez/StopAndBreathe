@@ -57,7 +57,6 @@ public:
 protected :
 	virtual void LoadGroupValue(){};
 	void UnloadGroupValue(bool bAsync);
-	FWwiseLoadedGroupValue LoadedGroupValue;
-
-
+	
+	FWwiseLoadedGroupValuePtrAtomic LoadedGroupValue{nullptr};
 };

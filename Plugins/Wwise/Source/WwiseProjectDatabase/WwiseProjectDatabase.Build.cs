@@ -21,7 +21,6 @@ public class WwiseProjectDatabase : ModuleRules
 {
 	public WwiseProjectDatabase(ReadOnlyTargetRules Target) : base(Target)
 	{
-		PublicDependencyModuleNames.AddRange(new string[] {"Core"});
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
 		PrivateDependencyModuleNames.AddRange(
@@ -36,7 +35,8 @@ public class WwiseProjectDatabase : ModuleRules
 
 				"WwiseFileHandler",
 				"WwiseResourceLoader",
-				"WwiseSoundEngine"
+				"WwiseSoundEngine",
+				"WwiseUtils"
 			}
 		);
 

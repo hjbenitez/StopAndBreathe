@@ -35,7 +35,6 @@ the specific language governing permissions and limitations under the License.
 #include <AK/SoundEngine/Common/IAkPluginMemAlloc.h>
 #include <AK/Tools/Common/AkPlatformFuncs.h>
 
-#define AK_ALIGN_TO_NEXT_BOUNDARY( __num__, __boundary__ ) (((__num__) + ((__boundary__)-1)) & ~((__boundary__)-1))
 namespace AK
 {
 	namespace DSP

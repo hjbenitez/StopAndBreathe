@@ -214,6 +214,8 @@ namespace AK
 
 			//@}
 
+			typedef SourceControlContainers::IAkMap<LPCWSTR, LPCWSTR, LPCWSTR, LPCWSTR> IConnectParameterMap;
+
 			/// Plug-in information structure. This structure gives a simple overview of the plug-in's capabilities.
 			class PluginInfo
 			{
@@ -252,6 +254,12 @@ namespace AK
 
 			/// This function destroys the plug-in. The implementation is generally '{ delete this; }'.
 			virtual void Destroy() = 0;
+
+			/// This method connects the source control plugin
+			virtual OperationResult Connect(const IConnectParameterMap & parameterMap) = 0;
+
+			/// This method disconnects the source control plugin
+			virtual OperationResult Disconnect() = 0;
 
 			/// This function is called when the user clicks the 'Config...' button in the Project Settings.
 			/// \return True if the user accepts the configuration, False otherwise

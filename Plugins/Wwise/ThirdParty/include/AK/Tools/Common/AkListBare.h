@@ -432,6 +432,13 @@ public:
 	    COUNT_POLICY<T>::IncrementCount( in_pItem );
 	}
 
+	void Transfer(AkListBare<T,U_NEXTITEM,COUNT_POLICY,LAST_POLICY>& in_src)
+	{
+		Term();
+		m_pFirst = in_src.m_pFirst;
+		in_src.m_pFirst = nullptr;
+	}
+
 protected:
 	T *				m_pFirst;					///< top of list
 };

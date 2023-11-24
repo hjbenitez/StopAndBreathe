@@ -17,7 +17,7 @@ Copyright (c) 2023 Audiokinetic Inc.
 
 #pragma once
 
-#include "AkUEFeatures.h"
+#include "WwiseUEFeatures.h"
 #include "WwiseItemType.h"
 #include "AssetRegistry/AssetData.h"
 

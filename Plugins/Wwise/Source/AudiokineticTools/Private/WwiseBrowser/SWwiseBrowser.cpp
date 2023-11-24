@@ -46,7 +46,7 @@ Copyright (c) 2023 Audiokinetic Inc.
 #include "AkAudioStyle.h"
 #include "AkSettings.h"
 #include "AkSettingsPerUser.h"
-#include "AkUnrealHelper.h"
+#include "WwiseUnrealHelper.h"
 
 #if !UE_5_0_OR_LATER
 #include "EditorFontGlyphs.h"
@@ -256,7 +256,7 @@ void SWwiseBrowser::CreateWwiseBrowserCommands()
 
 	// Action find an item in the Wwise Project Explorer
 	ActionList.MapAction(
-		Commands.RequestFindInProjectExplorerWwisetem,
+		Commands.RequestFindInProjectExplorerWwiseItem,
 		FExecuteAction::CreateSP(this, &SWwiseBrowser::HandleFindInProjectExplorerWwiseItemCommandExecute),
 		FCanExecuteAction::CreateSP(this, &SWwiseBrowser::HandleFindInProjectExplorerWwiseItemCanExecute));
 
@@ -297,7 +297,7 @@ TSharedPtr<SWidget> SWwiseBrowser::MakeWwiseBrowserContextMenu()
 		MenuBuilder.EndSection();
 		MenuBuilder.BeginSection("WwiseBrowserFindOptions", LOCTEXT("ExploreMenuHeader", "Explore"));
 		{
-			MenuBuilder.AddMenuEntry(Commands.RequestFindInProjectExplorerWwisetem);
+			MenuBuilder.AddMenuEntry(Commands.RequestFindInProjectExplorerWwiseItem);
 			MenuBuilder.AddMenuEntry(Commands.RequestFindInContentBrowser);
 			MenuBuilder.AddMenuEntry(Commands.RequestExploreWwiseItem);
 		}
@@ -1001,7 +1001,7 @@ FText SWwiseBrowser::GetWarningText() const
 		}
 	}
 
-	FString soundBankDirectory = AkUnrealHelper::GetSoundBankDirectory();
+	FString soundBankDirectory = WwiseUnrealHelper::GetSoundBankDirectory();
 	const FText WarningText = FText::FormatOrdered(LOCTEXT("BrowserMissingSoundBanks", "SoundBank metadata was not found at path specified by \"Generated SoundBanks Folder\" setting: {0}.\nThis folder should match the \"Root Output Path\" in the Wwise Project's SoundBanks settings.\nEnsure the folders match, and that SoundBanks and JSON metadata are generated.\nPress the \"Refresh\" button to re-parse the generated metadata."), FText::FromString(soundBankDirectory));
 	return WarningText;
 }
@@ -1030,7 +1030,7 @@ FText SWwiseBrowser::GetSoundBanksLocationText() const
 	{
 		RootOutputPath = TEXT("Root Output Path Override");
 	}
-	return FText::Format(LOCTEXT("RootOutputPath", "{0}: {1}"), FText::FromString(RootOutputPath), FText::FromString(AkUnrealHelper::GetSoundBankDirectory()));
+	return FText::Format(LOCTEXT("RootOutputPath", "{0}: {1}"), FText::FromString(RootOutputPath), FText::FromString(WwiseUnrealHelper::GetSoundBankDirectory()));
 }
 
 FSlateColor SWwiseBrowser::GetSoundBanksLocationTextColor() const

@@ -49,7 +49,14 @@ struct FWwiseReconcileItem
 	FGuid ItemId;
 	bool operator==(const FWwiseReconcileItem& Other) const
 	{
-		return ItemId == Other.ItemId;
+		if(ItemId.IsValid())
+		{
+			return ItemId == Other.ItemId;
+		}
+		else
+		{
+			return Asset.AssetName == Other.Asset.AssetName;
+		}
 	}
 };
 

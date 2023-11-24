@@ -31,21 +31,6 @@ the specific language governing permissions and limitations under the License.
 
 namespace AK
 {
-#if defined(AK_USE_UWP_API) || defined(DOXYGEN_INCLUDE)
-	/// Context specific to the UWP port of Wwise SDK.
-	class IAkUWPContext : public IAkPlatformContext
-	{
-	public:
-#ifdef AK_UWP_CPP_CX
-		/// Inverse lookup of AK::GetDeviceIDFromGamepad.
-		/// \note This function is only available for project code using C++/CX.
-		/// \return Reference to a gamepad, or nullptr if the device ID is no longer valid (such as if the gamepad was disconnected)
-		virtual Windows::Gaming::Input::Gamepad^ GetGamepadFromDeviceID(AkDeviceID deviceID) = 0;
-#endif
-	};
-#endif // !defined(AK_USE_UWP_API) || defined(DOXYGEN_INCLUDE)
-
-#if !defined(AK_USE_UWP_API) || defined(DOXYGEN_INCLUDE)
 	/// Win32 namespace
 	namespace Win32
 	{
@@ -58,7 +43,6 @@ namespace AK
 	public:
 		virtual AK::Win32::IAkDeviceEnumerator* GetDeviceEnum() = 0;
 	};
-#endif // !defined(AK_USE_UWP_API) || defined(DOXYGEN_INCLUDE)
 }
 
 #endif // __AK_PLATFORM_CONTEXT_MAC_H__

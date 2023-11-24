@@ -46,7 +46,7 @@ void FWwiseAuxBusCookedData::Serialize(FArchive& Ar)
 FString FWwiseAuxBusCookedData::GetDebugString() const
 {
 	bool bFirst = true;
-	auto Result = FString::Printf(TEXT("Event %s (%" PRIu32 ")"), *DebugName.ToString(), AuxBusId);
+	auto Result = FString::Printf(TEXT("AuxBus %s (%" PRIu32 ")"), *DebugName.ToString(), AuxBusId);
 	if (SoundBanks.Num() > 0)
 	{
 		if (bFirst)
