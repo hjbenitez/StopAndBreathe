@@ -18,6 +18,7 @@ Copyright (c) 2023 Audiokinetic Inc.
 #pragma once
 
 #include "Wwise/WwiseSoundEngineVersionModule.h"
+
 #include "Modules/ModuleManager.h"
 
 class FWwiseGlobalCallbacks;

@@ -118,6 +118,18 @@ namespace AkMath
 		return DotPoduct4_4x4(v0_x, v0_y, v0_z, v0_w, v1_x, v1_y, v1_z, v1_w);
 	}
 
+	// 3-element cross product of 4 vectors, returned as XXXX, YYYY, ZZZZ
+	AkForceInline void CrossProduct3_4x4(
+		const AKSIMD_V4F32& u_x, const AKSIMD_V4F32& u_y, const AKSIMD_V4F32& u_z,
+		const AKSIMD_V4F32& v_x, const AKSIMD_V4F32& v_y, const AKSIMD_V4F32& v_z,
+		AKSIMD_V4F32& uXv_x, AKSIMD_V4F32& uXv_y, AKSIMD_V4F32& uXv_z
+	)
+	{
+		uXv_x = AKSIMD_SUB_V4F32(AKSIMD_MUL_V4F32(u_y, v_z), AKSIMD_MUL_V4F32(u_z, v_y));
+		uXv_y = AKSIMD_SUB_V4F32(AKSIMD_MUL_V4F32(u_z, v_x), AKSIMD_MUL_V4F32(u_x, v_z));
+		uXv_z = AKSIMD_SUB_V4F32(AKSIMD_MUL_V4F32(u_x, v_y), AKSIMD_MUL_V4F32(u_y, v_x));
+	}
+
 	// Trig functions approximation (based on the Fast versions found in AkMath.h)
 	AkForceInline AKSIMD_V4F32 AKSIMD_SIN_V4F32(const AKSIMD_V4F32 x)
 	{

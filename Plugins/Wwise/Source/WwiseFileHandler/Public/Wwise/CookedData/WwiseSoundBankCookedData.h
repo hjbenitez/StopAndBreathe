@@ -100,3 +100,8 @@ inline bool operator==(const FWwiseSoundBankCookedData& InLhs, const FWwiseSound
 {
 	return InLhs.SoundBankId == InRhs.SoundBankId && InLhs.SoundBankPathName == InRhs.SoundBankPathName;
 }
+
+inline bool operator!=(const FWwiseSoundBankCookedData& InLhs, const FWwiseSoundBankCookedData& InRhs)
+{
+	return InLhs.SoundBankId != InRhs.SoundBankId || InLhs.SoundBankPathName != InRhs.SoundBankPathName;
+}

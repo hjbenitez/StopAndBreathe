@@ -18,7 +18,7 @@ Copyright (c) 2023 Audiokinetic Inc.
 #pragma once
 
 #include "AkAudioDevice.h"
-#include "AkUEFeatures.h"
+#include "WwiseUEFeatures.h"
 #include "Modules/ModuleManager.h"
 #include "Containers/Ticker.h"
 

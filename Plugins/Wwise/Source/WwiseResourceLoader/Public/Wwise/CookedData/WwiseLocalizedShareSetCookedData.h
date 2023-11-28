@@ -37,7 +37,7 @@ struct WWISERESOURCELOADER_API FWwiseLocalizedShareSetCookedData
 	FName DebugName;
 
 	/**
-	* @brief Short ID for the Shareset.
+	* @brief Short ID for the ShareSet.
 	*/
 	UPROPERTY(BlueprintReadOnly, VisibleInstanceOnly, Category = "Wwise")
 	int32 ShareSetId = 0;

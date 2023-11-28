@@ -431,9 +431,8 @@ void FWwiseSimpleExtSrcManager::SetExternalSourceMedia(const uint32 ExternalSour
 {
 	SCOPED_WWISESIMPLEEXTERNALSOURCE_EVENT_2(TEXT("FWwiseSimpleExtSrcManager::SetExternalSourceMedia"));
 	FEventRef Completed;
-	FileHandlerExecutionQueue.Async([this, ExternalSourceCookie, MediaInfoId, ExternalSourceName, &Completed]() mutable
+	FileHandlerExecutionQueue.Async(WWISESIMPLEEXTERNALSOURCE_ASYNC_NAME("FWwiseSimpleExtSrcManager::SetExternalSourceMedia Async"), [this, ExternalSourceCookie, MediaInfoId, ExternalSourceName, &Completed]() mutable
 	{
-		SCOPED_WWISESIMPLEEXTERNALSOURCE_EVENT_3(TEXT("FWwiseSimpleExtSrcManager::SetExternalSourceMedia Async"));
 		if (!MediaInfoTable.IsValid())
 		{
 			UE_LOG(LogWwiseSimpleExtSrc, Error, TEXT("Cannot read External Source Media information because datatable asset has not yet been loaded."));

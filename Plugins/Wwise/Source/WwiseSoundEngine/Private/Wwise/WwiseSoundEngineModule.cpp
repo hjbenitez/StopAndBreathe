@@ -64,7 +64,7 @@ void FWwiseSoundEngineModule::StartupModule()
 	Platform = VersionInterface->GetPlatform();
 	WAAPI = VersionInterface->GetWAAPI();
 
-#if defined(AK_ENABLE_ASSERTS) && !AK_USE_NULL_SOUNDENGINE
+#if defined(AK_ENABLE_ASSERTS)
 	g_pAssertHook = WwiseAssertHook;
 #endif
 }

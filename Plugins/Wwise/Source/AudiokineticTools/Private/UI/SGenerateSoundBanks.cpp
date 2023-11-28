@@ -24,7 +24,7 @@ Copyright (c) 2023 Audiokinetic Inc.
 #include "AkAudioBankGenerationHelpers.h"
 #include "AkAudioDevice.h"
 #include "AkSettingsPerUser.h"
-#include "AkUEFeatures.h"
+#include "WwiseUEFeatures.h"
 #include "AssetManagement/AkGenerateSoundBanksTask.h"
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "Dialogs/Dialogs.h"

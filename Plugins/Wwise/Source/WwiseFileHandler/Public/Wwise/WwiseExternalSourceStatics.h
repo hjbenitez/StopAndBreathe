@@ -19,7 +19,7 @@ Copyright (c) 2023 Audiokinetic Inc.
 
 #include "CoreMinimal.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
-#include "AkUnrealHelper.h"
+#include "WwiseUnrealHelper.h"
 
 #include "WwiseExternalSourceStatics.generated.h"
 

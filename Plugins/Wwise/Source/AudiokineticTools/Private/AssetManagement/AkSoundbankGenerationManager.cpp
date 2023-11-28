@@ -31,8 +31,10 @@ Copyright (c) 2023 Audiokinetic Inc.
 #else
 #include "HAL/PlatformFilemanager.h"
 #endif
+#include "AkAudioModule.h"
 #include "Misc/ScopeExit.h"
 #include "Internationalization/Text.h"
+#include "Wwise/WwiseProjectDatabase.h"
 
 #define LOCTEXT_NAMESPACE "AkAudio"
 
@@ -117,6 +119,15 @@ void AkSoundBankGenerationManager::WrapUpGeneration(const bool bSuccess, const F
 	auto EndTime = FPlatformTime::Cycles64();
 	UE_LOG(LogAudiokineticTools, Display, TEXT("%s and took %f seconds."), *SuccessMessage,
 		FPlatformTime::ToSeconds64(EndTime - StartTime));
+
+
+	FWwiseProjectDatabase* ProjectDatabase = FWwiseProjectDatabase::Get();
+	if(UNLIKELY(!ProjectDatabase))
+	{
+		return;
+	}
+	FAkAudioModule::AkAudioModuleInstance->UpdateWwiseResourceLoaderSettings();
+	ProjectDatabase->UpdateDataStructure();
 }
 
 void AkSoundBankGenerationManager::CreateNotificationItem()
@@ -209,9 +220,9 @@ bool AkSoundBankGenerationManager::WwiseConsoleGenerate()
 	WwiseConsoleCommand = TEXT("/bin/sh");
 #endif
 	WwiseConsoleArguments += FString::Printf(TEXT("generate-soundbank \"%s\" --use-stable-guid "),
-		*PlatformFile->ConvertToAbsolutePathForExternalAppForWrite(*AkUnrealHelper::GetWwiseProjectPath()));
+		*PlatformFile->ConvertToAbsolutePathForExternalAppForWrite(*WwiseUnrealHelper::GetWwiseProjectPath()));
 
-	auto GeneratedSoundBanksPath = AkUnrealHelper::GetSoundBankDirectory();
+	auto GeneratedSoundBanksPath = WwiseUnrealHelper::GetSoundBankDirectory();
 
 	if (InitParameters.Platforms.Num() > 0)
 	{

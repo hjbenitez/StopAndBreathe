@@ -17,7 +17,7 @@ Copyright (c) 2023 Audiokinetic Inc.
 
 #include "Wwise/WwiseProjectDatabaseImpl.h"
 
-#include "AkUnrealHelper.h"
+#include "WwiseUnrealHelper.h"
 #include "Wwise/Metadata/WwiseMetadataPlatformInfo.h"
 #include "Wwise/WwiseResourceLoader.h"
 #include "Wwise/WwiseProjectDatabaseDelegates.h"
@@ -125,19 +125,12 @@ void FWwiseProjectDatabaseImpl::UpdateDataStructure(const FDirectoryPath* InUpda
 		bIsDatabaseParsed = true;
 		UE_LOG(LogWwiseProjectDatabase, Log, TEXT("UpdateDataStructure: Done."));
 	}
-	if (Get() == this)		// Only broadcast database updates on main project.
+	if (Get() == this && bShouldBroadcast)		// Only broadcast database updates on main project.
 	{
-		auto* ProjectDatabaseDelegates = FWwiseProjectDatabaseDelegates::Get();
-
-		if (UNLIKELY(!ProjectDatabaseDelegates))
-		{
-			UE_LOG(LogWwiseProjectDatabase, Warning, TEXT("FWwiseProjectDatabaseImpl::UpdateDataStructure: ProjectDatabase Delegates not initialized, cannot broadcast updates."))
-		}
-
-		else
-		{
-			ProjectDatabaseDelegates->GetOnDatabaseUpdateCompletedDelegate().Broadcast();
-		}
+		//Stop multiple threads from Broadcasting this delegate at the same time.
+		bShouldBroadcast = false;
+		FWwiseProjectDatabaseDelegates::Get()->GetOnDatabaseUpdateCompletedDelegate().Broadcast();
+		bShouldBroadcast = true;
 	}
 }
 

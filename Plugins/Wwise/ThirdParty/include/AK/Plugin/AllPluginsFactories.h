@@ -51,11 +51,6 @@ the specific language governing permissions and limitations under the License.
 #include <AK/Plugin/AkRecorderFXFactory.h>						// Recorder
 #include <AK/Plugin/Ak3DAudioBedMixerFXFactory.h>     // 3D Audio Bed Mixer
 
-// Platform specific
-#ifdef AK_SONY
-	#include <AK/Plugin/SceAudio3dEngineFactory.h>				// SCE Audio3d
-#endif
-
 // Sources plug-ins
 #include <AK/Plugin/AkSilenceSourceFactory.h>					// Silence generator
 #include <AK/Plugin/AkSineSourceFactory.h>						// Sine wave generator

@@ -21,6 +21,8 @@ Copyright (c) 2023 Audiokinetic Inc.
 #include "AkWaapiClient.h"
 #include "AkSettingsPerUser.generated.h"
 
+DECLARE_EVENT(UAkSettingsPerUser, ShowRoomsPortalsChanged);
+DECLARE_EVENT(UAkSettingsPerUser, ShowReverbInfoChanged)
 DECLARE_EVENT(UAkSettingsPerUser, AutoConnectChanged);
 DECLARE_EVENT(UAkSettingsPerUser, AutoSyncWaapiNamesChanged);
 DECLARE_MULTICAST_DELEGATE(FOnSoundBanksPathChangedDelegate);
@@ -77,6 +79,25 @@ public:
 	//Opens a notification that the user must accept before reloading Wwise Asset Data
 	UPROPERTY(Config, EditAnywhere, Category = "Asset Reload")
 	bool AskForWwiseAssetReload = false;
+
+#if WITH_EDITORONLY_DATA
+	// Visualize rooms and portals in the viewport. This requires 'realtime' to be enabled in the viewport.
+	UPROPERTY(Config, EditAnywhere, Category = "Viewports")
+	bool VisualizeRoomsAndPortals = false;
+	
+	// Flips the state of VisualizeRoomsAndPortals. Used for the viewport menu options. (See FAudiokineticToolsModule in AudiokineticToolsModule.cpp).
+	void ToggleVisualizeRoomsAndPortals();
+	
+	// When enabled, information about AkReverbComponents will be displayed in viewports, above the component's UPrimitiveComponent parent. This requires 'realtime' to be enabled in the viewport.
+	UPROPERTY(Config, EditAnywhere, Category = "Viewports")
+	bool bShowReverbInfo = true;
+	
+	// Flips the state of bShowReverbInfo. Used for the viewport menu options. (See FAudiokineticToolsModule in AudiokineticToolsModule.cpp).
+	void ToggleShowReverbInfo();
+	
+	ShowRoomsPortalsChanged OnShowRoomsPortalsChanged;
+	ShowReverbInfoChanged OnShowReverbInfoChanged;
+#endif
 
 
 #if WITH_EDITOR

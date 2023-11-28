@@ -111,7 +111,7 @@ void UAkSlider::SynchronizeProperties()
 	
 	if (MyAkSlider.IsValid())
 	{
-		TSharedPtr<SSlider>  MySlider = MyAkSlider->GetAkSilder();
+		TSharedPtr<SSlider>  MySlider = MyAkSlider->GetAkSlider();
 
 		MySlider->SetOrientation(Orientation);
 		MySlider->SetSliderBarColor(SliderBarColor);
@@ -156,7 +156,7 @@ float UAkSlider::GetValue() const
 {
 	if (MyAkSlider.IsValid() )
 	{
-		TSharedPtr<SSlider>  MySlider = MyAkSlider->GetAkSilder();
+		TSharedPtr<SSlider>  MySlider = MyAkSlider->GetAkSlider();
 		if (MySlider.IsValid())
 		{
 			return MySlider->GetValue();
@@ -170,7 +170,7 @@ void UAkSlider::SetValue(float InValue)
 	Value = InValue;
 	if ( MyAkSlider.IsValid() )
 	{
-		TSharedPtr<SSlider>  MySlider = MyAkSlider->GetAkSilder();
+		TSharedPtr<SSlider>  MySlider = MyAkSlider->GetAkSlider();
 		if (MySlider.IsValid())
 		{
 			MySlider->SetValue(InValue);
@@ -183,7 +183,7 @@ void UAkSlider::SetIndentHandle(bool InIndentHandle)
 	IndentHandle = InIndentHandle;
 	if ( MyAkSlider.IsValid() )
 	{
-		TSharedPtr<SSlider>  MySlider = MyAkSlider->GetAkSilder();
+		TSharedPtr<SSlider>  MySlider = MyAkSlider->GetAkSlider();
 		if (MySlider.IsValid())
 		{
 			MySlider->SetIndentHandle(InIndentHandle);
@@ -196,7 +196,7 @@ void UAkSlider::SetLocked(bool InLocked)
 	Locked = InLocked;
 	if ( MyAkSlider.IsValid() )
 	{
-		TSharedPtr<SSlider>  MySlider = MyAkSlider->GetAkSilder();
+		TSharedPtr<SSlider>  MySlider = MyAkSlider->GetAkSlider();
 		if (MySlider.IsValid())
 		{
 			MySlider->SetLocked(InLocked);
@@ -209,7 +209,7 @@ void UAkSlider::SetStepSize(float InValue)
 	StepSize = InValue;
 	if (MyAkSlider.IsValid())
 	{
-		TSharedPtr<SSlider>  MySlider = MyAkSlider->GetAkSilder();
+		TSharedPtr<SSlider>  MySlider = MyAkSlider->GetAkSlider();
 		if (MySlider.IsValid())
 		{
 			MySlider->SetStepSize(InValue);
@@ -222,7 +222,7 @@ void UAkSlider::SetSliderHandleColor(FLinearColor InValue)
 	SliderHandleColor = InValue;
 	if (MyAkSlider.IsValid())
 	{
-		TSharedPtr<SSlider>  MySlider = MyAkSlider->GetAkSilder();
+		TSharedPtr<SSlider>  MySlider = MyAkSlider->GetAkSlider();
 		if (MySlider.IsValid())
 		{
 			MySlider->SetSliderHandleColor(InValue);
@@ -235,7 +235,7 @@ void UAkSlider::SetSliderBarColor(FLinearColor InValue)
 	SliderBarColor = InValue;
 	if (MyAkSlider.IsValid())
 	{
-		TSharedPtr<SSlider>  MySlider = MyAkSlider->GetAkSilder();
+		TSharedPtr<SSlider>  MySlider = MyAkSlider->GetAkSlider();
 		if (MySlider.IsValid())
 		{
 			MySlider->SetSliderBarColor(InValue);

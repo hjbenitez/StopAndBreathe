@@ -25,8 +25,17 @@ public class WwiseFileHandler : ModuleRules
 
 		PublicDependencyModuleNames.AddRange(new string[] {
 			"WwiseConcurrency",
-			"WwiseSoundEngine"
+			"WwiseSoundEngine",
+			"WwiseUtils"
 		});
+
+		if (Target.bCompileAgainstCoreUObject)
+		{
+			PublicDependencyModuleNames.AddRange(new string[]
+			{
+				"WwiseObjectUtils"
+			});
+		}
 
 		PrivateDependencyModuleNames.AddRange(new string[] {
 			"Core",

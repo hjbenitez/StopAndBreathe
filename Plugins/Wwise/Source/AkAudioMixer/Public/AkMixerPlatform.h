@@ -18,7 +18,7 @@ Copyright (c) 2023 Audiokinetic Inc.
 #pragma once
 
 #include "AudioMixer.h"
-#include "WwiseDefines.h"
+#include "WwiseUnrealDefines.h"
 
 class FAudioMixerInputComponent;
 class UAkAudioEvent;

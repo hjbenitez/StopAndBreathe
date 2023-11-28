@@ -202,7 +202,7 @@ public:
 	AkForceInline void Init(AK::IAkPluginMemAlloc* in_pAllocator) { m_pAllocator = in_pAllocator; }
 protected:
 	AkForceInline void* Alloc(size_t in_uSize) { return AK_PLUGIN_ALLOC(m_pAllocator, in_uSize); }
-	AkForceInline void* ReAlloc(void* in_pCurrent, size_t in_uOldSize, size_t in_uNewSize) { return AK_PLUGIN_REALLOC(m_pAllocator, in_pCurrent, in_uNewSize); }
+	AkForceInline void* ReAlloc(void* in_pCurrent, size_t /*in_uOldSize*/, size_t in_uNewSize) { return AK_PLUGIN_REALLOC(m_pAllocator, in_pCurrent, in_uNewSize); }
 	AkForceInline void Free(void* in_pAddress) { AK_PLUGIN_FREE(m_pAllocator, in_pAddress); }
 	AkForceInline void TransferMem(void*& io_pDest, AkPluginArrayAllocator& in_src, void* in_pSrc)
 	{

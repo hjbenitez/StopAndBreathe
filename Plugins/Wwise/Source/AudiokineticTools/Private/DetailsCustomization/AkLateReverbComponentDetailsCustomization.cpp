@@ -42,7 +42,7 @@ TSharedRef<IDetailCustomization> FAkLateReverbComponentDetailsCustomization::Mak
 
 void FAkLateReverbComponentDetailsCustomization::CustomizeDetails(const TSharedPtr<IDetailLayoutBuilder>& InDetailBuilder)
 {
-	InDetailBuilder->EditCategory("Toggle", FText::GetEmpty(), ECategoryPriority::Important);
+	InDetailBuilder->EditCategory("EnableComponent", FText::GetEmpty(), ECategoryPriority::Important);
 	InDetailBuilder->EditCategory("Late Reverb", FText::GetEmpty(), ECategoryPriority::TypeSpecific);
 	DetailBuilder = InDetailBuilder;
 
@@ -81,7 +81,7 @@ void FAkLateReverbComponentDetailsCustomization::CustomizeDetails(IDetailLayoutB
 	UAkLateReverbComponent* LateReverbBeingCustomized = Cast<UAkLateReverbComponent>(ObjectsBeingCustomized[0].Get());
 	if (LateReverbBeingCustomized)
 	{
-		IDetailCategoryBuilder& ToggleDetailCategory = InDetailBuilder.EditCategory("Toggle");
+		IDetailCategoryBuilder& ToggleDetailCategory = InDetailBuilder.EditCategory("EnableComponent");
 		auto EnableHandle = InDetailBuilder.GetProperty("bEnable");
 		EnableHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FAkLateReverbComponentDetailsCustomization::OnEnableValueChanged));
 

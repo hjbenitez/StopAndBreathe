@@ -40,7 +40,7 @@ public:
 	/// @name Initialization
 	//@{
 
-	/// Query whether the Memory Manager has been sucessfully initialized.
+	/// Query whether the Memory Manager has been successfully initialized.
 	/// \warning This function is not thread-safe. It should not be called at the same time as MemoryMgr::Init or MemoryMgr::Term.
 	/// \return True if the Memory Manager is initialized, False otherwise
 	/// \sa

@@ -30,6 +30,7 @@ the specific language governing permissions and limitations under the License.
 
 #include <Windows.h>
 
+
 // Sleep of 1 is as close as we can get on Microsoft platforms
 // SwitchToThread() is liable to cause the current thread to be unscheduled for 10-30ms
 #define AkThreadYield() Sleep(1);

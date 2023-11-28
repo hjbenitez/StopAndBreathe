@@ -139,7 +139,7 @@ void AAkSpotReflector::SetImageSource(UAkComponent* AkComponent)
 				roomID = AkRooms[0]->GetRoomID();
 		}
 
-		if (roomID != AkComponent->GetSpatialAudioRoom())
+		if (roomID != AkComponent->GetSpatialAudioRoomID())
 			return;
 	}
 

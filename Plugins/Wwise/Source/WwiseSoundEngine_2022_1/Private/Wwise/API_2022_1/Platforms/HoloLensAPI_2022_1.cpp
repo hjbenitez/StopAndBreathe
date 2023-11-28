@@ -41,7 +41,7 @@ const wchar_t* FWwisePlatformAPI_2022_1_HoloLens::GetWindowsDeviceName(AkInt32 i
 AkUInt32 FWwisePlatformAPI_2022_1_HoloLens::GetWindowsDeviceCount(AkAudioDeviceState uDeviceStateMask)
 {
 	SCOPE_CYCLE_COUNTER(STAT_WwiseSoundEngineAPI_2022_1);
-	return AK::GetWindowsDeviceCount(uDeviceStateMask);
+	return GetWindowsDeviceCount(uDeviceStateMask);
 }
 
 bool FWwisePlatformAPI_2022_1_HoloLens::GetWindowsDevice(AkInt32 in_index, AkUInt32& out_uDeviceID,

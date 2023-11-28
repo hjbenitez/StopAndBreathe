@@ -605,7 +605,7 @@ int32 FWaapiDataSource::LoadChildren(const FGuid& InParentId, const FString& InP
 
 	TSharedPtr<FJsonObject> Result;
 
-	// Request data from Wwise UI using WAAPI and use them to create a Wwise tree item, getting the informations from a specific "ID".
+	// Request data from Wwise UI using WAAPI and use them to create a Wwise tree item, getting the information from a specific "ID".
 	if (!LoadWaapiInfo(WwiseWaapiHelper::PATH, InParentPath, Result,
 		{
 			{ WwiseWaapiHelper::SELECT , { WwiseWaapiHelper::DESCENDANTS }, {} },
@@ -824,7 +824,7 @@ void FWaapiDataSource::OnWaapiRenamed(uint64_t Id, TSharedPtr<FJsonObject> Respo
 	{
 		FGuid ItemId = FGuid::NewGuid();
 		FGuid::ParseExact(ItemIdString, EGuidFormats::DigitsWithHyphensInBraces, ItemId);
-		if(ItemsToCreate.Find(ItemId))
+		if(ItemsToCreate.Contains(ItemId))
 		{
 			ItemsToCreate.Remove(ItemId);
 			if (TreeItem)

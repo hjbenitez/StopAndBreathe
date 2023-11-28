@@ -28,7 +28,8 @@ public struct WwiseAudioLinkRuntime
 			{
 				"AudioLinkCore",
 				"AudioLinkEngine",
-				"SignalProcessing"
+				"SignalProcessing",
+				"WwiseProcessing"
 			}
 		);
 #endif

@@ -23,6 +23,7 @@ Copyright (c) 2023 Audiokinetic Inc.
 #if WITH_EDITOR
 #include "CoreMinimal.h"
 #include "UObject/ObjectMacros.h"
+#include "SceneManagement.h"
 #include "AkAcousticPortal.h"
 #endif // WITH_EDITOR
 

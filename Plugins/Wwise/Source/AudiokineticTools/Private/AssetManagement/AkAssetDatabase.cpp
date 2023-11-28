@@ -24,7 +24,7 @@ Copyright (c) 2023 Audiokinetic Inc.
 #include "AkStateValue.h"
 #include "AkSwitchValue.h"
 #include "AkTrigger.h"
-#include "AkUnrealHelper.h"
+#include "WwiseUnrealHelper.h"
 #include "AkAudioDevice.h"
 #include "AkSettingsPerUser.h"
 #include "IAudiokineticTools.h"

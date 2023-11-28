@@ -81,7 +81,8 @@ void UAkInitBank::Serialize(FArchive& Ar)
 
 void UAkInitBank::UnloadInitBank(bool bAsync)
 {
-	if (LoadedInitBank)
+	auto PreviouslyLoadedInitBank = LoadedInitBank.exchange(nullptr);
+	if (PreviouslyLoadedInitBank)
 	{
 		auto* ResourceLoader = FWwiseResourceLoader::Get();
 		if (UNLIKELY(!ResourceLoader))
@@ -92,14 +93,13 @@ void UAkInitBank::UnloadInitBank(bool bAsync)
 		if (bAsync)
 		{
 			FWwiseLoadedInitBankPromise Promise;
-			Promise.EmplaceValue(MoveTemp(LoadedInitBank));
+			Promise.EmplaceValue(MoveTemp(PreviouslyLoadedInitBank));
 			ResourceUnload = ResourceLoader->UnloadInitBankAsync(Promise.GetFuture());
 		}
 		else
 		{
-			ResourceLoader->UnloadInitBank(MoveTemp(LoadedInitBank));
+			ResourceLoader->UnloadInitBank(MoveTemp(PreviouslyLoadedInitBank));
 		}
-		LoadedInitBank = nullptr;
 	}
 }
 
@@ -145,14 +145,18 @@ void UAkInitBank::LoadInitBank()
 	{
 		return;
 	}
-	if (LoadedInitBank)
-	{
-		UnloadInitBank(false);
-	}
+	UnloadInitBank(false);
+
 #if WITH_EDITORONLY_DATA
 	PrepareCookedData();
 #endif
-	LoadedInitBank = ResourceLoader->LoadInitBank(InitBankCookedData);
+	
+	const auto NewlyLoadedInitBank = ResourceLoader->LoadInitBank(InitBankCookedData);
+	auto PreviouslyLoadedInitBank = LoadedInitBank.exchange(NewlyLoadedInitBank);
+	if (UNLIKELY(PreviouslyLoadedInitBank))
+	{
+		ResourceLoader->UnloadInitBank(MoveTemp(PreviouslyLoadedInitBank));
+	}
 }
 
 

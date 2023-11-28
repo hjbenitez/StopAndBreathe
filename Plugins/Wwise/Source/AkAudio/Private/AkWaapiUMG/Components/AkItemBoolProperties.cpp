@@ -116,14 +116,14 @@ FReply UAkItemBoolProperties::HandleOnDragDetected(const FGeometry& Geometry, co
 {
 	if (MouseEvent.IsMouseButtonDown(EKeys::LeftMouseButton) && WwiseProperties.IsValid())
 	{
-		const TArray<TSharedPtr<FString>>& ProperySelected = WwiseProperties->GetSelectedProperties();
-		if (ProperySelected.Num() == 1)
+		const TArray<TSharedPtr<FString>>& PropertySelected = WwiseProperties->GetSelectedProperties();
+		if (PropertySelected.Num() == 1)
 		{		
 			if(OnPropertyDragged.IsBound())
 			{
-				OnPropertyDragged.Broadcast(*ProperySelected[0].Get());
+				OnPropertyDragged.Broadcast(*PropertySelected[0].Get());
 			}
-			return FReply::Handled().BeginDragDrop(FWwiseBoolPropertyDragDropOp::New(ProperySelected));
+			return FReply::Handled().BeginDragDrop(FWwiseBoolPropertyDragDropOp::New(PropertySelected));
 		}
 	}
 	return FReply::Unhandled();

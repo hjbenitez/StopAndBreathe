@@ -25,12 +25,17 @@ Copyright (c) 2023 Audiokinetic Inc.
 #include "AkLateReverbComponent.h"
 #include "AkRoomComponent.h"
 #include "AkSurfaceReflectorSetComponent.h"
+#include "AkAcousticPortal.h"
+#include "AkSettings.h"
+
+#include "WwiseUnrealDefines.h"
+#include "WwiseUnrealEngineHelper.h"
+#include "WwiseUnrealObjectHelper.h"
+
 #include "Components/BrushComponent.h"
 #include "Model.h"
 #include "Engine/BrushBuilder.h"
 
-#include "AkAcousticPortal.h"
-#include "AkSettings.h"
 
 // Geometric Tools
 #if WITH_EDITOR
@@ -159,7 +164,7 @@ void AAkSpatialAudioVolume::FitRaycast()
 
 		for (auto& res : OutHits)
 		{
-			AActor* HitActor = AkSpatialAudioHelper::GetActorFromHitResult(res);
+			AActor* HitActor = WwiseUnrealHelper::GetActorFromHitResult(res);
 			if (HitActor != nullptr)
 			{
 				UAkPortalComponent* PortalComponent = (UAkPortalComponent*)HitActor->FindComponentByClass(UAkPortalComponent::StaticClass());
@@ -849,6 +854,14 @@ void AAkSpatialAudioVolume::PostEditChangeProperty(FPropertyChangedEvent& Proper
 			}
 
 			FitBox();
+		}
+
+		if (PropertyChangedEvent.Property->GetFName() == "ActorLabel")
+		{
+			if (Room != nullptr)
+			{
+				Room->OnParentNameChanged();
+			}
 		}
 	}
 }

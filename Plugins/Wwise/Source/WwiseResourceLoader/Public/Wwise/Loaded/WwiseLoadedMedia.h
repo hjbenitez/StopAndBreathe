@@ -35,6 +35,7 @@ struct WWISERESOURCELOADER_API FWwiseLoadedMediaInfo
 		FLoadedData& operator=(const FLoadedData&) = delete;
 
 		bool bLoaded = false;
+		int IsProcessing{0};
 
 		bool IsLoaded() const;
 	} LoadedData;
@@ -48,6 +49,7 @@ private:
 
 using FWwiseLoadedMediaList = TDoubleLinkedList<FWwiseLoadedMediaInfo>;
 using FWwiseLoadedMediaListNode = FWwiseLoadedMediaList::TDoubleLinkedListNode;
-using FWwiseLoadedMedia = FWwiseLoadedMediaListNode*;
-using FWwiseLoadedMediaPromise = TWwisePromise<FWwiseLoadedMedia>;
-using FWwiseLoadedMediaFuture = TWwiseFuture<FWwiseLoadedMedia>;
+using FWwiseLoadedMediaPtr = FWwiseLoadedMediaListNode*;
+using FWwiseLoadedMediaPtrAtomic = std::atomic<FWwiseLoadedMediaPtr>;
+using FWwiseLoadedMediaPromise = TWwisePromise<FWwiseLoadedMediaPtr>;
+using FWwiseLoadedMediaFuture = TWwiseFuture<FWwiseLoadedMediaPtr>;

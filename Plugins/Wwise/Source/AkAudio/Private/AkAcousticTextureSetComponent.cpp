@@ -86,6 +86,15 @@ void UAkAcousticTextureSetComponent::TickComponent(float DeltaTime, enum ELevelT
 	if (DampingEstimationNeedsUpdate && SecondsSinceDampingUpdate >= PARAM_ESTIMATION_UPDATE_PERIOD)
 	{
 		RecalculateHFDamping();
+
+		if (USceneComponent* parent = GetAttachParent())
+		{
+			if (UAkLateReverbComponent* ReverbComp = AkComponentHelpers::GetChildComponentOfType<UAkLateReverbComponent>(*parent))
+			{
+				ReverbComp->TextureSetUpdated(); // We notify the late reverb component so it can recompute the Decay value.
+			}
+		}
+
 		DampingEstimationNeedsUpdate = false;
 	}
 }
@@ -206,7 +215,7 @@ void UAkAcousticTextureSetComponent::SendGeometryToWwise(const AkGeometryParams&
 	}
 }
 
-void UAkAcousticTextureSetComponent::SendGeometryInstanceToWwise(const FRotator& rotation, const FVector& location, const FVector& scale, const AkRoomID roomID)
+void UAkAcousticTextureSetComponent::SendGeometryInstanceToWwise(const FRotator& rotation, const FVector& location, const FVector& scale, const AkRoomID roomID, bool useForReflectionAndDiffraction)
 {
 	if (ShouldSendGeometry() && GeometryHasBeenSent)
 	{
@@ -221,6 +230,9 @@ void UAkAcousticTextureSetComponent::SendGeometryInstanceToWwise(const FRotator&
 		FAkAudioDevice::FVectorToAKVector(scale, params.Scale);
 		params.GeometrySetID = GetGeometrySetID();
 		params.RoomID = roomID;
+#if WWISE_2023_1_OR_LATER
+		params.UseForReflectionAndDiffraction = useForReflectionAndDiffraction;
+#endif
 
 		FAkAudioDevice* AkAudioDevice = FAkAudioDevice::Get();
 		if (AkAudioDevice != nullptr && AkAudioDevice->SetGeometryInstance(GetGeometrySetID(), params) == AK_Success)

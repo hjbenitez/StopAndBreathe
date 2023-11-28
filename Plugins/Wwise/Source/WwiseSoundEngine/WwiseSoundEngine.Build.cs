@@ -22,15 +22,16 @@ public class WwiseSoundEngine : ModuleRules
 {
 	public WwiseSoundEngine(ReadOnlyTargetRules Target) : base(Target)
 	{
-		WwiseSoundEngine_2022_1.Apply(this, Target, true);		// Latest version should be written with "latest" to true for logging purposes
+		PublicDependencyModuleNames.AddRange(new string[] { "WwiseUtils" });
+		WwiseSoundEngine_2022_1.Apply(this, Target);
+		WwiseSoundEngine_2023_1.Apply(this, Target, true);		// Latest version should be written with "latest" to true for logging purposes
 		WwiseSoundEngine_Null.Apply(this, Target);
 
 		PrivateDependencyModuleNames.AddRange(
 			new string[]
 			{
 				"Core",
-				"CoreUObject",
-				"Engine"
+				"WwiseUtils"
 			}
 		);
 

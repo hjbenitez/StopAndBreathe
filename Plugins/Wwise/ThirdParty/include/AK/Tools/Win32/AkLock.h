@@ -39,11 +39,7 @@ public:
     /// Constructor
 	CAkLock() 
     {
-#ifdef AK_USE_UWP_API
-        ::InitializeCriticalSectionEx( &m_csLock, 0, 0 );
-#else
         ::InitializeCriticalSection( &m_csLock );
-#endif
     }
 
 	/// Destructor

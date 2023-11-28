@@ -37,25 +37,25 @@ the specific language governing permissions and limitations under the License.
 //@{
 
 /// Wwise SDK major version
-#define AK_WWISESDK_VERSION_MAJOR				2022
+#define AK_WWISESDK_VERSION_MAJOR				2023
 
 /// Wwise SDK minor version
 #define AK_WWISESDK_VERSION_MINOR				1
 
 /// Wwise SDK sub-minor version
-#define AK_WWISESDK_VERSION_SUBMINOR			8
+#define AK_WWISESDK_VERSION_SUBMINOR			0
 
 /// Wwise SDK build number
-#define AK_WWISESDK_VERSION_BUILD				8316
+#define AK_WWISESDK_VERSION_BUILD				8367
 
 /// Wwise SDK build date (year)
 #define AK_WWISESDK_BUILD_YEAR					2023
 
 /// Wwise SDK build date (month)
-#define AK_WWISESDK_BUILD_MONTH					9
+#define AK_WWISESDK_BUILD_MONTH					11
 
 /// Wwise SDK build date (day)
-#define AK_WWISESDK_BUILD_DAY					27
+#define AK_WWISESDK_BUILD_DAY					15
 
 //@}
 
@@ -85,7 +85,7 @@ the specific language governing permissions and limitations under the License.
 											AK_WWISESDK_VERSION_NICKNAME_POSTFIX
 
 /// Wwise SDK branch
-#define AK_WWISESDK_BRANCH					"wwise_v2022.1"
+#define AK_WWISESDK_BRANCH					"wwise_v2023.1"
 
 /// @name Wwise SDK Copyright Notice
 

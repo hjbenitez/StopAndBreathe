@@ -187,6 +187,7 @@ private:
 	FDelegateHandle OnAssetRegistryFilesLoadedHandle;
 	FDelegateHandle RTPCTrackEditorHandle;
 	FDelegateHandle EventTrackEditorHandle;
+	FDelegateHandle StaticPluginHandle;
 
 	/** Allow to create an AkComponent when Drag & Drop of an AkEvent */
 	TSharedPtr<IComponentAssetBroker> AkEventBroker;

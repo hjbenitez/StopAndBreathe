@@ -18,7 +18,7 @@ Copyright (c) 2023 Audiokinetic Inc.
 #pragma once
 
 #include "AkInclude.h"
-#include "WwiseDefines.h"
+#include "WwiseUnrealDefines.h"
 #include "AkRtpc.h"
 #include "Curves/RichCurve.h"
 #include "MovieSceneSection.h"

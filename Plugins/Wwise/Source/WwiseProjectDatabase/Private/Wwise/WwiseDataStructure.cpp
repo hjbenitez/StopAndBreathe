@@ -43,6 +43,7 @@ Copyright (c) 2023 Audiokinetic Inc.
 #include "Wwise/Metadata/WwiseMetadataTrigger.h"
 
 #include "WwiseDefines.h"
+#include "WwiseUnrealDefines.h"
 
 #include "Async/Async.h"
 #if UE_5_0_OR_LATER

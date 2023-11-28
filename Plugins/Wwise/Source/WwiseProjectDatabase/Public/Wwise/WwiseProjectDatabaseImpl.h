@@ -21,7 +21,7 @@ Copyright (c) 2023 Audiokinetic Inc.
 
 class FWwiseResourceLoader;
 class FWwiseProjectDatabase;
-using FSharedWwiseDataStructure = TSharedRef<FWwiseDataStructure>;
+using FSharedWwiseDataStructure = TSharedRef<FWwiseDataStructure, ESPMode::ThreadSafe>;
 
 class WWISEPROJECTDATABASE_API FWwiseProjectDatabaseImpl : public FWwiseProjectDatabase
 {
@@ -40,6 +40,7 @@ public:
 	const FWwiseResourceLoader* GetResourceLoader() const override;
 
 protected:
+	bool bShouldBroadcast = true;
 	FSharedWwiseDataStructure LockedDataStructure;
 
 	FSharedWwiseDataStructure& GetLockedDataStructure() override { return LockedDataStructure; }

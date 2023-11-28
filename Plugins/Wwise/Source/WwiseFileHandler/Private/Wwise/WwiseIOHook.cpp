@@ -43,9 +43,9 @@ bool FWwiseIOHook::Init(const AkDeviceSettings& InDeviceSettings)
 	}
 
 	// Create a device in the Stream Manager, specifying this as the hook.
-	StreamingDevice = StreamMgr->CreateDevice(InDeviceSettings, GetIOHook());
-	UE_CLOG(UNLIKELY(StreamingDevice == AK_INVALID_DEVICE_ID), LogWwiseFileHandler, Error, TEXT("IOHook: CreateDevice failed."));
-	UE_CLOG(LIKELY(StreamingDevice != AK_INVALID_DEVICE_ID), LogWwiseFileHandler, Verbose, TEXT("IOHook: CreateDevice = %" PRIu32), StreamingDevice);
+	auto Result = StreamMgr->CreateDevice(InDeviceSettings, GetIOHook(), StreamingDevice);
+	UE_CLOG(UNLIKELY(Result != AK_Success || StreamingDevice == AK_INVALID_DEVICE_ID), LogWwiseFileHandler, Error, TEXT("IOHook: CreateDevice failed."));
+	UE_CLOG(LIKELY(Result == AK_Success && StreamingDevice != AK_INVALID_DEVICE_ID), LogWwiseFileHandler, Verbose, TEXT("IOHook: CreateDevice = %" PRIu32), StreamingDevice);
 	return StreamingDevice != AK_INVALID_DEVICE_ID;
 }
 

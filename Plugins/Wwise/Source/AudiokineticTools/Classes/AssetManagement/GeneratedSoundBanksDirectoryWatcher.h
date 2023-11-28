@@ -33,7 +33,7 @@ public:
 	//Watch the SoundBankInfoCache.dat file. Changes to this file indicate that sound data generation is done
 	bool StartCacheWatcher(const FString& CachePath);
 
-	//Watch for changes to GeneratedSoundbanks folder, triggering a countdown timer to parse once no more changes are detected after a certain delay
+	//Watch for changes to GeneratedSoundBanks folder, triggering a countdown timer to parse once no more changes are detected after a certain delay
 	void StartSoundBanksWatcher(const FString& GeneratedSoundBanksFolder);
 
 	void StopWatchers();

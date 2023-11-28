@@ -124,9 +124,9 @@ struct AkReflectImageSource
 	}
 
 	AkImageSourceID uID;						///< Image source ID (for matching delay lines across frames)
-	AkImageSourceParams params;
-	AkImageSourceTexture texture;
-	AkImageSourceName name;
+	AkImageSourceParams params;					///< Image source properties
+	AkImageSourceTexture texture;				///< Image source's acoustic textures. Note that changing any of these textures across frames for a given image source, identified by uID, may result in a discontinuity in the audio signal.
+	AkImageSourceName name;						///< Image source name, for profiling.
 };
 
 /// Data structure sent by the game to an instance of the Reflect plug-in.

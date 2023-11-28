@@ -34,7 +34,11 @@ namespace FAkComponentVisualizer_Helper
 	{
 		if (auto waapiClient = FAkWaapiClient::Get())
 		{
-			auto AkAudioEventName = GET_AK_EVENT_NAME(AkComponent->AkAudioEvent, AkComponent->EventName);
+			FString AkAudioEventName = {};
+			if(AkComponent->AkAudioEvent)
+			{
+				AkAudioEventName = AkComponent->AkAudioEvent->GetName();
+			}
 			if (!AkAudioEventName.IsEmpty())
 			{
 				TSharedRef<FJsonObject> args = MakeShared<FJsonObject>();

@@ -50,7 +50,7 @@ public:
 	bool ShouldEstimatePredelay() const;
 	bool RequiresUpdates() const;
 
-	void CalculateT60();
+	void CalculateT60(UAkLateReverbComponent* reverbComp);
 	void CalculateTimeToFirstReflection();
 	void CalculateHFDamping(const UAkAcousticTextureSetComponent* textureSetComponent);
 	

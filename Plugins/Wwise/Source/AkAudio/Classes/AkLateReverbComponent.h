@@ -37,11 +37,11 @@ public:
 	UAkLateReverbComponent(const class FObjectInitializer& ObjectInitializer);
 
 	/**
-	 * Enable usage of the late reverb inside a volume. Additional properties are available in the Late Reverb category.
-	 * The number of simultaneous AkReverbVolumes is configurable in the Unreal Editor Project Settings under Plugins > Wwise
-	 * If this Late Reverb is applied to a Spatial Audio room, it will be active even if the maximum number of simultaneous reverb volumes (see integration settings) was reached.
+	 * Enable the Late Reverb Component to apply a late reverb to sounds emitted in this volume. Additional properties are available in the Late Reverb category.
+	 * The number of simultaneous reverb volumes is configurable in the Unreal Editor Project Settings under Plugins > Wwise
+	 * If this Late Reverb is applied to a Spatial Audio Room, it is active even if the maximum number of simultaneous reverb volumes is reached.
 	 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Toggle, meta = (DisplayName = "Enable Late Reverb"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EnableComponent", meta = (DisplayName = "Enable Late Reverb"))
 	bool bEnable = false;
 
 	/** Maximum send level to the Wwise Auxiliary Bus associated to this AkReverbVolume */
@@ -81,7 +81,7 @@ public:
 
 	bool HasEffectOnLocation(const FVector& Location) const;
 
-	bool LateReverbIsActive() const { return Parent && bEnable && !IsRunningCommandlet(); }
+	bool LateReverbIsActive() const { return Parent.IsValid() && bEnable && !IsRunningCommandlet(); }
 
 	virtual void BeginPlay() override;
 	virtual void BeginDestroy() override;
@@ -121,13 +121,18 @@ public:
 	/** Set the component that will be used to estimate the HFDamping. For example, in a Blueprint that has a static mesh component with an AkGeometry child component, this function can be called in BeginPlay to associate that AkGeometry component with this reverb component.
 	 *  If this late reverb component has a sibling geometry component (or surface reflector set component), they will be associated automatically and there is no need to call this function.
 	 */
-	UFUNCTION(BlueprintCallable, Category = "Audiokinetic|LateReverb|Reverb Parameter Estimation")
+	UFUNCTION(BlueprintCallable, Category = "Audiokinetic|LateReverb|ReverbParameterEstimation")
 		void AssociateAkTextureSetComponent(UAkAcousticTextureSetComponent* textureSetComponent);
+
+	UAkAcousticTextureSetComponent* GetAttachedTextureSetComponent();
+
+	/* public function to get notified when the texture set changed */
+	void TextureSetUpdated();
 
 private:
 	friend class FAkAudioDevice;
 
-	class UPrimitiveComponent* Parent;
+	TWeakObjectPtr<class UPrimitiveComponent> Parent;
 	
 	/** Save the manually assigned aux bus so we can recall it if auto-assign is disabled. */
 	UPROPERTY()
@@ -144,10 +149,16 @@ private:
 	float SecondsSinceDecayUpdate = 0.0f;
 	bool DecayEstimationNeedsUpdate = false;
 	float SecondsSincePredelayUpdate = 0.0f;
-	bool PredelayEstimationNeedsUpdate = false;	
+	bool PredelayEstimationNeedsUpdate = false;
+	bool ReverbAssignmentNeedsUpdate = false;
 
 	// Indicates that the component was added to the spatial index in AkAudioDevice.
 	bool IsIndexed = false;
+
+	bool TextureSetHasChanged = false;
+	bool ReverbParamsChanged = false;
+
+	void OnReverbParamsChanged();
 
 	void RecalculateDecay();
 	void RecalculatePredelay();
@@ -179,9 +190,15 @@ private:
 
 	FVector GetTextVisualizersLocation();
 
-	// Used to track when the Aux bus map, or the global RTPCs in the integration settings change.
-	void RegisterAuxBusMapChangedCallback();
-	FDelegateHandle AuxBusChangedHandle;
+	// Used to track when the Reverb Assignment in the integration settings changes.
+	void RegisterReverbAssignmentChangedCallback();
+	FDelegateHandle ReverbAssignmentChangedHandle;
+
+	// Used to track when the Global Decay Absorption value in the integration settings changes.
+	void RegisterGlobalDecayAbsorptionChangedCallback();
+	FDelegateHandle GlobalDecayAbsorptionChangedHandle;
+
+	// Used to track when the global RTPCs in the integration settings changes.
 	void RegisterReverbRTPCChangedCallback();
 	FDelegateHandle RTPCChangedHandle;
 

@@ -18,11 +18,9 @@ Copyright (c) 2023 Audiokinetic Inc.
 #pragma once
 
 #include "Modules/ModuleManager.h"
-#include "Misc/ConfigCacheIni.h"
-#include "WwiseDefines.h"
-#if !UE_5_0_OR_LATER
 #include "Misc/CommandLine.h"
-#endif
+#include "Misc/ConfigCacheIni.h"
+#include "WwiseUnrealDefines.h"
 
 class FWwiseProjectDatabase;
 class FWwiseProjectDatabaseDelegates;

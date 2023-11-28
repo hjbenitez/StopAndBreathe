@@ -22,6 +22,7 @@ Copyright (c) 2023 Audiokinetic Inc.
 #include "Misc/CoreDelegates.h"
 #include "Misc/ConfigCacheIni.h"
 #include "WwiseDefines.h"
+#include "WwiseUnrealDefines.h"
 
 #if UE_5_1_OR_LATER
 #include "Wwise/WwiseAudioLinkRuntimeModule.h"
@@ -45,21 +46,22 @@ class FWwiseModule : public IModuleInterface
 public:
 	virtual void StartupModule() override
 	{
+		auto& ModuleManager = FModuleManager::Get();
 		{
 			SCOPED_WWISE_EVENT(TEXT("StartupModule: AkAudio"));
 			UE_LOG(LogWwise, Log, TEXT("WwiseModule: Loading AkAudio"));
-			FModuleManager::Get().LoadModule(TEXT("AkAudio"));
+			ModuleManager.LoadModule(TEXT("AkAudio"));
 			FCoreDelegates::OnPostEngineInit.AddRaw(this, &FWwiseModule::OnPostEngineInit);
 		}
 
-		// Loading optional modules
+		// Loading optional modules - Modules defined by Project Settings
 		bool bAkAudioMixerEnabled = false;
 		GConfig->GetBool(TEXT("/Script/AkAudio.AkSettings"), TEXT("bAkAudioMixerEnabled"), bAkAudioMixerEnabled, GGameIni);
 		if (bAkAudioMixerEnabled)
 		{
 			SCOPED_WWISE_EVENT(TEXT("StartupModule: AkAudioMixer"));
 			UE_LOG(LogWwise, Log, TEXT("WwiseModule: Loading AkAudioMixer"));
-			FModuleManager::Get().LoadModule(TEXT("AkAudioMixer"));
+			ModuleManager.LoadModule(TEXT("AkAudioMixer"));
 		}
 
 		bool bWwiseAudioLinkEnabled = false;

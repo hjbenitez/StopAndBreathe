@@ -25,9 +25,7 @@ public class WwiseConcurrency : ModuleRules
 	
 		PublicDependencyModuleNames.AddRange(new string[] {
 			"Core",
-			"CoreUObject",
-			"Engine",
-			"WwiseSoundEngine"
+			"WwiseUtils"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {

@@ -21,7 +21,8 @@ Copyright (c) 2023 Audiokinetic Inc.
 #include "Wwise/WwiseFileHandlerModule.h"
 #include "Wwise/Stats/AsyncStats.h"
 #include "Wwise/Stats/FileHandler.h"
-#include "WwiseDefines.h"
+#include "Wwise/WwiseTask.h"
+#include "WwiseUnrealDefines.h"
 
 #include "Async/Async.h"
 #include "Async/AsyncFileHandle.h"
@@ -45,7 +46,9 @@ FWwiseFileCache* FWwiseFileCache::Get()
 	return nullptr;
 }
 
-FWwiseFileCache::FWwiseFileCache()
+FWwiseFileCache::FWwiseFileCache():
+	OpenQueue(TEXT("FWwiseFileCache OpenQueue"), EWwiseTaskPriority::BackgroundHigh),
+	DeleteRequestQueue(TEXT("FWwiseFileCache DeleteRequestQueue"), EWwiseTaskPriority::BackgroundLow)
 {
 }
 
@@ -91,7 +94,7 @@ FWwiseFileCacheHandle::~FWwiseFileCacheHandle()
 			CanDestroyEvent->Wait(FTimespan::FromMilliseconds(1));
 		}
 		CanDestroy.Store(nullptr);
-		FFunctionGraphTask::CreateAndDispatchWhenReady([CanDestroyEvent]
+		LaunchWwiseTask(WWISEFILEHANDLER_ASYNC_NAME("FWwiseFileCacheHandle::~FWwiseFileCacheHandle returnEventToPool"), [CanDestroyEvent]
 		{
 			FPlatformProcess::ReturnSynchEventToPool(CanDestroyEvent);
 		});
@@ -123,9 +126,8 @@ void FWwiseFileCacheHandle::Open(FWwiseFileOperationDone&& OnDone)
 	}
 
 	++RequestsInFlight;
-	FileCache->OpenQueue.Async([this, OnDone = MoveTemp(OnDone)]() mutable
+	FileCache->OpenQueue.Async(WWISEFILEHANDLER_ASYNC_NAME("FWwiseFileCacheHandle::Open async"), [this, OnDone = MoveTemp(OnDone)]() mutable
 	{
-		SCOPED_WWISEFILEHANDLER_EVENT_3(TEXT("FWwiseFileCacheHandle::Open Async"));
 		check(!FileHandle);
 
 		UE_LOG(LogWwiseFileHandler, Verbose, TEXT("FWwiseFileCacheHandle::Open (%p): Opening %s."), this, *Pathname);
@@ -198,7 +200,6 @@ void FWwiseFileCacheHandle::DeleteRequest(IAsyncReadRequest* Request)
 {
 	if (!Request || Request->PollCompletion())
 	{
-		SCOPED_WWISEFILEHANDLER_EVENT_4(TEXT("FWwiseFileCacheHandle::DeleteRequest"));
 		UE_LOG(LogWwiseFileHandler, VeryVerbose, TEXT("FWwiseFileCacheHandle::DeleteRequest (%p req:%p) [%" PRIi32 "]: Deleting request."), this, Request, FPlatformTLS::GetCurrentThreadId());
 		delete Request;
 		RemoveRequestInFlight();
@@ -208,14 +209,14 @@ void FWwiseFileCacheHandle::DeleteRequest(IAsyncReadRequest* Request)
 		const auto FileCache = FWwiseFileCache::Get();
 		if (LIKELY(FileCache))
 		{
-			FileCache->DeleteRequestQueue.AsyncAlways([this, Request]() mutable
+			FileCache->DeleteRequestQueue.AsyncAlways(WWISEFILEHANDLER_ASYNC_NAME("FWwiseFileCacheHandle::DeleteRequest"), [this, Request]() mutable
 			{
 				DeleteRequest(Request);
 			});
 		}
 		else
 		{
-			FFunctionGraphTask::CreateAndDispatchWhenReady([this, Request]() mutable
+			LaunchWwiseTask(WWISEFILEHANDLER_ASYNC_NAME("FWwiseFileCacheHandle::DeleteRequest PostClose"), [this, Request]() mutable
 			{
 				DeleteRequest(Request);
 			});

@@ -292,6 +292,10 @@ bool FWwiseResourceCookerImpl::GetAcousticTextureCookedData(FWwiseAcousticTextur
 
 	const auto* AcousticTexture = AcousticTextureRef.GetAcousticTexture();
 
+	OutCookedData.AbsorptionLow = AcousticTexture->AbsorptionLow;
+	OutCookedData.AbsorptionMidLow = AcousticTexture->AbsorptionMidLow;
+	OutCookedData.AbsorptionMidHigh = AcousticTexture->AbsorptionMidHigh;
+	OutCookedData.AbsorptionHigh = AcousticTexture->AbsorptionHigh;
 	OutCookedData.ShortId = AcousticTexture->Id;
 	if (ExportDebugNameRule == EWwiseExportDebugNameRule::Release)
 	{

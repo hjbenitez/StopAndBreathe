@@ -37,7 +37,7 @@ TSharedRef<IDetailCustomization> FAkRoomComponentDetailsCustomization::MakeInsta
 
 void FAkRoomComponentDetailsCustomization::CustomizeDetails(const TSharedPtr<IDetailLayoutBuilder>& InDetailBuilder)
 {
-	InDetailBuilder->EditCategory("Toggle", FText::GetEmpty(), ECategoryPriority::Important);
+	InDetailBuilder->EditCategory("EnableComponent", FText::GetEmpty(), ECategoryPriority::Important);
 	InDetailBuilder->EditCategory("Room", FText::GetEmpty(), ECategoryPriority::TypeSpecific);
 	InDetailBuilder->EditCategory("AkEvent", FText::GetEmpty(), ECategoryPriority::TypeSpecific);
 	DetailBuilder = InDetailBuilder;
@@ -77,13 +77,14 @@ void FAkRoomComponentDetailsCustomization::CustomizeDetails(IDetailLayoutBuilder
 	UAkRoomComponent* RoomBeingCustomized = Cast<UAkRoomComponent>(ObjectsBeingCustomized[0].Get());
 	if (RoomBeingCustomized)
 	{
-		IDetailCategoryBuilder& ToggleDetailCategory = InDetailBuilder.EditCategory("Toggle");
+		IDetailCategoryBuilder& ToggleDetailCategory = InDetailBuilder.EditCategory("EnableComponent");
 		auto EnableHandle = InDetailBuilder.GetProperty("bEnable");
 		EnableHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FAkRoomComponentDetailsCustomization::OnEnableValueChanged));
 
 		if (!RoomBeingCustomized->bEnable)
 		{
 			InDetailBuilder.HideCategory("Room");
+			InDetailBuilder.HideCategory("AkEvent");
 		}
 	}
 }

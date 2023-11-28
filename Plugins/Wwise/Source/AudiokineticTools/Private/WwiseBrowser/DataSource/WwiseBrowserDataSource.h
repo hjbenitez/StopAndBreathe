@@ -175,7 +175,7 @@ private:
 
 	void OnWaapiDataSourceRefreshed();
 
-	void OnProjecDBDataSourceRefreshed();
+	void OnProjectDBDataSourceRefreshed();
 
 	void SetupAssetCallbacks();
 	void OnFilesFullyLoaded();

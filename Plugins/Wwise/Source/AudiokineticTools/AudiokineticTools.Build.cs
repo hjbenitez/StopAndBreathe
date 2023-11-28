@@ -88,7 +88,8 @@ public class AudiokineticTools : ModuleRules
 				"AkAudio",
 				"WwiseProjectDatabase",
 				"WwiseResourceLoader",
-				"WwiseSoundEngine"
+				"WwiseSoundEngine",
+				"WwiseUtils"
 			}
 		);
 

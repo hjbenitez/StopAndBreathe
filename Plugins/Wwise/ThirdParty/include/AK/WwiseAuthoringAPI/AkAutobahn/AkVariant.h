@@ -50,7 +50,7 @@ namespace AK
 			inline AkVariant(const std::string& in_val) : AkVariantBase(in_val) {}
 
 			template<typename RapidJsonValueType, typename RapidJsonAllocator, typename RapidJsonSizeType>
-			bool toRapidJsonValue(RapidJsonValueType out_rapidJson, RapidJsonAllocator in_allocator) const
+			bool toRapidJsonValue(RapidJsonValueType& out_rapidJson, RapidJsonAllocator& in_allocator) const
 			{
 				switch (GetType())
 				{

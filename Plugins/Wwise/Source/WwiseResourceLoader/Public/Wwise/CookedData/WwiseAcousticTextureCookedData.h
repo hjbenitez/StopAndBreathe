@@ -24,8 +24,24 @@ struct WWISERESOURCELOADER_API FWwiseAcousticTextureCookedData
 {
 	GENERATED_BODY()
 
+	// The Acoustic Texture's lower Absorption value. The percentage by which sound within a low frequency range is dampened.
+	UPROPERTY(BlueprintReadOnly, VisibleInstanceOnly, Category = "AkTexture")
+	float AbsorptionLow{ 0 };
+
+	// The Acoustic Texture's mid-low Absorption value. The percentage by which sound within a mid-low frequency range is dampened.
+	UPROPERTY(BlueprintReadOnly, VisibleInstanceOnly, Category = "AkTexture")
+	float AbsorptionMidLow{ 0 };
+
+	// The Acoustic Texture's mid-high Absorption value. The percentage by which sound within a mid-high frequency range is dampened.
+	UPROPERTY(BlueprintReadOnly, VisibleInstanceOnly, Category = "AkTexture")
+	float AbsorptionMidHigh{ 0 };
+
+	// The Acoustic Texture's high Absorption value. The percentage by which sound within a high frequency range is dampened.
+	UPROPERTY(BlueprintReadOnly, VisibleInstanceOnly, Category = "AkTexture")
+	float AbsorptionHigh{ 0 };
+
 	UPROPERTY(BlueprintReadOnly, VisibleInstanceOnly, Category = "Wwise")
-	int32 ShortId = 0;
+	int32 ShortId{ 0 };
 
 	/**
 	 * @brief Optional debug name. Can be empty in release, contain the name, or the full path of the asset.

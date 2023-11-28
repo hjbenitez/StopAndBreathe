@@ -74,5 +74,5 @@ class FUAssetDataSource
 public:
 	void ConstructItems();
 	void GetAssetsInfo(FGuid ItemId, uint32 ShortId, FString Name, EWwiseItemType::Type& ItemType, FName& AssetName, TArray<FAssetData>& Assets);
-	void GetOrphanAssets(TMap<FGuid, UAssetDataSourceInformation>& OrphanAssets) const;
+	void GetOrphanAssets(TArray<UAssetDataSourceInformation>& OrphanAssets) const;
 };

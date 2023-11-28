@@ -90,10 +90,11 @@ public:
 	/// - AK::StreamMgr::IAkLowLevelIOHook
 	/// - AK::StreamMgr::GetDefaultDeviceSettings()
 	/// - \ref streamingmanager_settings
-	AkDeviceID CreateDevice(
-		const AkDeviceSettings& in_settings,		///< Device settings.
-		AK::StreamMgr::IAkLowLevelIOHook* in_pLowLevelHook	///< Associated low-level I/O hook. Pass either a IAkIOHookBlocking or a IAkIOHookDeferredBatch interface, consistent with the type of the scheduler.
-		) override;
+	virtual AKRESULT CreateDevice(
+		const AkDeviceSettings& in_settings,		// Device settings.
+		AK::StreamMgr::IAkLowLevelIOHook* in_pLowLevelHook,		// Device specific low-level I/O hook.
+		AkDeviceID& out_idDevice					// Assigned device ID.
+	) override;
 
 	/// Streaming device destruction.
 	/// \return AK_Success if the device was successfully destroyed.

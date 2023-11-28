@@ -72,7 +72,7 @@ void FWwiseExternalSourceManagerImpl::LoadExternalSource(
 	const FWwiseLanguageCookedData& InLanguage, FLoadExternalSourceCallback&& InCallback)
 {
 	SCOPED_WWISEFILEHANDLER_EVENT_4(TEXT("FWwiseExternalSourceManagerImpl::LoadExternalSource"));
-	FileHandlerExecutionQueue.Async([this, InExternalSourceCookedData, InRootPath, InLanguage, InCallback = MoveTemp(InCallback)]() mutable
+	FileHandlerExecutionQueue.Async(WWISEFILEHANDLER_ASYNC_NAME("FWwiseExternalSourceManagerImpl::LoadExternalSource"), [this, InExternalSourceCookedData, InRootPath, InLanguage, InCallback = MoveTemp(InCallback)]() mutable
 	{
 		LoadExternalSourceImpl(InExternalSourceCookedData, InRootPath, InLanguage, MoveTemp(InCallback));
 	});
@@ -83,7 +83,7 @@ void FWwiseExternalSourceManagerImpl::UnloadExternalSource(
 	const FWwiseLanguageCookedData& InLanguage, FUnloadExternalSourceCallback&& InCallback)
 {
 	SCOPED_WWISEFILEHANDLER_EVENT_4(TEXT("FWwiseExternalSourceManagerImpl::UnloadExternalSource"));
-	FileHandlerExecutionQueue.Async([this, InExternalSourceCookedData, InRootPath, InLanguage, InCallback = MoveTemp(InCallback)]() mutable
+	FileHandlerExecutionQueue.Async(WWISEFILEHANDLER_ASYNC_NAME("FWwiseExternalSourceManagerImpl::UnloadExternalSource"), [this, InExternalSourceCookedData, InRootPath, InLanguage, InCallback = MoveTemp(InCallback)]() mutable
 	{
 		UnloadExternalSourceImpl(InExternalSourceCookedData, InRootPath, InLanguage, MoveTemp(InCallback));
 	});
@@ -291,7 +291,7 @@ void FWwiseExternalSourceManagerImpl::BindPlayingIdToExternalSources(const uint3
 				continue;
 			}
 
-			FileHandlerExecutionQueue.Async([this, MediaId, ExternalSourceFileState]() mutable
+			FileHandlerExecutionQueue.Async(WWISEFILEHANDLER_ASYNC_NAME("FWwiseExternalSourceManagerImpl::BindPlayingIdToExternalSources decrement"), [this, MediaId, ExternalSourceFileState]() mutable
 			{
 				// This type is safe as long as we don't decrement its usage
 				if (ExternalSourceFileState->DecrementPlayCount() && ExternalSourceFileState->CanDelete())
@@ -345,7 +345,7 @@ void FWwiseExternalSourceManagerImpl::OnEndOfEvent(const uint32 InPlayingId)
 			UE_LOG(LogWwiseFileHandler, Error, TEXT("OnEndOfEvent: Getting external source media %" PRIu32 ": Could not cast to ExternalSourceState"), MediaId);
 			continue;
 		}
-		FileHandlerExecutionQueue.Async([this, MediaId, ExternalSourceFileState]() mutable
+		FileHandlerExecutionQueue.Async(WWISEFILEHANDLER_ASYNC_NAME("FWwiseExternalSourceManagerImpl::OnEndOfEvent decrement"), [this, MediaId, ExternalSourceFileState]() mutable
 		{
 			// This type is safe as long as we don't decrement its usage
 			if (ExternalSourceFileState->DecrementPlayCount() && ExternalSourceFileState->CanDelete())

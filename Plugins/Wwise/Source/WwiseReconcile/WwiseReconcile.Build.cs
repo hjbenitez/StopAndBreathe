@@ -27,6 +27,7 @@ public class WwiseReconcile : ModuleRules
 			"WwiseSoundEngine",
 			"WwiseResourceLoader",
 			"WwiseProjectDatabase",
+			"WwiseUtils",
 			"AssetTools",
 			"EditorStyle",
 			"InputCore",

@@ -43,13 +43,13 @@ public class WwiseUEPlatform_2022_1_TVOS : WwiseUEPlatform
 	{
 		return new List<string>
 		{
-			Path.Combine(ThirdPartyFolder, AkPlatformLibDir, AkConfigurationDir + "-appletvos", "lib")
+			Path.Combine(ThirdPartyFolder, AkPlatformLibDir, WwiseConfigurationDir + "-appletvos", "lib")
 		};
 	}
 
 	public override List<string> GetAdditionalWwiseLibs()
 	{
-		return GetAllLibrariesInFolder(Path.Combine(ThirdPartyFolder, AkPlatformLibDir, AkConfigurationDir + "-appletvos", "lib"), "a", true);
+		return GetAllLibrariesInFolder(Path.Combine(ThirdPartyFolder, AkPlatformLibDir, WwiseConfigurationDir + "-appletvos", "lib"), "a", true);
 	}
 
 	public override List<string> GetRuntimeDependencies()
