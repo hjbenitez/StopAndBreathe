@@ -14,10 +14,13 @@
 		{
 			"Name": "CommonUI",
 			"Enabled": true
+		},
+		{
+			"Name": "Wwise",
+			"Enabled": false
 		}
 	],
 	"TargetPlatforms": [
-		"Mac",
 		"Windows"
 	]
 }
