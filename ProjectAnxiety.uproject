@@ -17,7 +17,6 @@
 		}
 	],
 	"TargetPlatforms": [
-		"Mac",
 		"Windows"
 	]
 }
